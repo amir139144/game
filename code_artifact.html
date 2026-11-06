@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>افسانه شوالیه: نبرد ۵ مرحله‌ای آنلاین</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #090b10;
+            color: #f8fafc;
+        }
+        canvas {
+            display: block;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        }
+        .neon-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .neon-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+        }
+        .neon-btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.5);
+            border-radius: 9999px;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.85); }
+        }
+        .gold-glow {
+            animation: pulseGlow 2s infinite;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen relative overflow-hidden bg-slate-950">
+
+    <!-- بوم اصلی بازی -->
+    <canvas id="gameCanvas" class="w-full h-full cursor-crosshair"></canvas>
+
+    <!-- =================== منوی اصلی و شخصی‌سازی کاراکتر =================== -->
+    <div id="mainMenuModal" class="fixed inset-0 z-40 flex items-center justify-center p-3 md:p-6 bg-gradient-to-br from-slate-950/95 via-slate-900/90 to-indigo-950/95 overflow-y-auto">
+        <div class="glass-panel rounded-3xl w-full max-w-6xl p-4 md:p-7 border border-sky-500/30 my-auto">
+            <!-- هدر منو -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-700/70">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 via-white to-rose-500 p-0.5 shadow-lg">
+                        <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center text-2xl font-black">⚔️</div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black bg-gradient-to-l from-sky-400 via-emerald-300 to-amber-300 bg-clip-text text-transparent">
+                            شوالیه تاریکی و نبرد ۵ مرحله‌ای
+                        </h1>
+                        <p class="text-xs md:text-sm text-slate-400">
+                            فیزیک نرم به سبک هالونایت • پلتفرمر سخت و جذاب • بخش آنلاین ۴ رقمی • راز کد 206
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="networkStatusBadge" class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        سرور آنلاین آماده
+                    </span>
+                </div>
+            </div>
+
+            <!-- گرید اصلی منو -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                
+                <!-- ستون ۱: پیش‌نمایش زنده کاراکتر و نام -->
+                <div class="lg:col-span-4 bg-slate-900/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-bold text-sky-400">پیش‌نمایش زنده کاراکتر</span>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">پرچم ایران 🇮🇷</span>
+                        </div>
+                        <!-- بوم پیش‌نمایش کاراکتر -->
+                        <div class="relative w-full h-56 bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950/60 rounded-xl border border-slate-700/60 overflow-hidden flex items-center justify-center">
+                            <canvas id="previewCanvas" width="320" height="224" class="w-full h-full"></canvas>
+                            <div class="absolute bottom-2 right-2 text-[11px] text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800">
+                                حرکت با A / D • پرش Space • چت T
+                            </div>
+                        </div>
+
+                        <!-- نام بازیکن -->
+                        <div class="mt-4">
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">نام شخصیت شما:</label>
+                            <input id="playerNameInput" type="text" maxlength="16" value="جنگجوی ایرانی" placeholder="نام خود را وارد کنید..."
+                                class="w-full bg-slate-950 border border-slate-700 focus:border-sky-400 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white outline-none transition">
+                        </div>
+                    </div>
+
+                    <!-- راهنمای سریع رازها -->
+                    <div class="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 space-y-1">
+                        <div class="font-extrabold text-amber-300 flex items-center gap-1">💡 نکات مهم داخل بازی:</div>
+                        <div>• روی <b>اهالی (NPC)</b> کلیک کنید تا جملاتشان را بگویند!</div>
+                        <div>• با دکمه <b>T</b> چت را باز کنید و عدد <b>206</b> را بنویسید تا از NPC «26 به توان 26» جایزه <b>موز (دابل جامپ)</b> بگیرید!</div>
+                        <div>• باس مرحله ۳ موقع مردن فقط <b>۱ عدد آرپی‌جی بی‌نهایت</b> می‌اندازد؛ هرکس زودتر دکمه <b>E</b> را بزند صاحبش می‌شود!</div>
+                    </div>
+                </div>
+
+                <!-- ستون ۲: شخصی‌سازی ظاهر و اسکین -->
+                <div class="lg:col-span-4 bg-slate-900/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between space-y-3">
+                    <h2 class="text-base font-extrabold text-emerald-400 border-b border-slate-800 pb-2">🎨 ساخت اسکین و ظاهر</h2>
+
+                    <!-- رنگ پوست -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">رنگ پوست / بدنه:</label>
+                        <div id="skinColorOptions" class="flex items-center gap-2 flex-wrap"></div>
+                    </div>
+
+                    <!-- نوع لباس و رنگ لباس -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">مدل لباس:</label>
+                            <select id="outfitStyleSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-bold text-white outline-none">
+                                <option value="knight">شنل شوالیه (هالونایت)</option>
+                                <option value="tactical">جلیقه ضدگلوله تکاور</option>
+                                <option value="hoodie">هودی خیابانی اسپرت</option>
+                                <option value="royal">زره سلطنتی طلایی</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">رنگ لباس:</label>
+                            <div id="outfitColorOptions" class="flex items-center gap-1.5 flex-wrap pt-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- کلاه‌ها -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">انتخاب کلاه:</label>
+                        <div class="grid grid-cols-3 gap-1.5" id="hatOptions">
+                            <button data-hat="none" class="hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 border border-sky-400 text-white">بدون کلاه</button>
+                            <button data-hat="horns" class="hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">شاخ هالونایت</button>
+                            <button data-hat="cap" class="hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">کلاه کپ</button>
+                            <button data-hat="cowboy" class="hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">کلاه کابوی</button>
+                            <button data-hat="crown" class="hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">تاج طلایی</button>
+                            <button data-hat="helmet" class="hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">کلاه جنگی</button>
+                        </div>
+                    </div>
+
+                    <!-- عینک‌ها -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">انتخاب عینک:</label>
+                        <div class="grid grid-cols-2 gap-1.5" id="glassesOptions">
+                            <button data-glasses="none" class="glasses-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 border border-sky-400 text-white">بدون عینک</button>
+                            <button data-glasses="sunglasses" class="glasses-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">عینک دودی خفن</button>
+                            <button data-glasses="cyber" class="glasses-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">عینک نئونی لیزری</button>
+                            <button data-glasses="round" class="glasses-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300">عینک طبی گرد</button>
+                        </div>
+                    </div>
+
+                    <!-- بخش پرچم (فقط پرچم ایران) -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">پرچم کاراکتر (تک‌گزینه اختصاصی):</label>
+                        <div class="w-full p-2.5 rounded-xl bg-gradient-to-l from-emerald-900/50 via-slate-900 to-rose-900/50 border-2 border-emerald-400 flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <!-- پرچم ایران SVG -->
+                                <div class="w-9 h-6 rounded overflow-hidden border border-white/30 flex flex-col shadow">
+                                    <div class="h-2 bg-emerald-500"></div>
+                                    <div class="h-2 bg-white flex items-center justify-center">
+                                        <span class="text-[7px] text-rose-600 font-black">☫</span>
+                                    </div>
+                                    <div class="h-2 bg-rose-600"></div>
+                                </div>
+                                <span class="text-xs font-extrabold text-white">پرچم ایران (انتخاب شده)</span>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-300">✓ فعال</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ستون ۳: انتخاب اسلحه و دکمه‌های شروع / آنلاین -->
+                <div class="lg:col-span-4 bg-slate-900/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between space-y-3">
+                    <div>
+                        <h2 class="text-base font-extrabold text-amber-400 border-b border-slate-800 pb-2 mb-2.5">🔫 انتخاب سلاح اصلی (هر کدام ۱۰۰ تیر)</h2>
+                        <div class="space-y-2" id="weaponSelectContainer">
+                            <!-- کلت -->
+                            <div data-weapon="pistol" class="weapon-card cursor-pointer p-2.5 rounded-xl bg-slate-950/90 border-2 border-sky-400 flex items-center justify-between transition">
+                                <div>
+                                    <div class="text-xs font-black text-white flex items-center gap-1.5">
+                                        <span>🔫 کلت کمری (Pistol)</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300">۱۰۰ تیر</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">دقت بالا، نیمه‌اتوماتیک، برد بلند و خوش‌دست</p>
+                                </div>
+                                <span class="text-sky-400 text-xs font-bold">کلید 1</span>
+                            </div>
+
+                            <!-- MK12 -->
+                            <div data-weapon="mk12" class="weapon-card cursor-pointer p-2.5 rounded-xl bg-slate-950/90 border-2 border-slate-800 flex items-center justify-between transition">
+                                <div>
+                                    <div class="text-xs font-black text-white flex items-center gap-1.5">
+                                        <span>🎯 تفنگ تک‌تیرانداز MK12</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">۱۰۰ تیر</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">سرعت تیر فوق‌العاده، برد بسیار زیاد، دمیج سنگین</p>
+                                </div>
+                                <span class="text-slate-400 text-xs font-bold">کلید 2</span>
+                            </div>
+
+                            <!-- رگبار -->
+                            <div data-weapon="rifle" class="weapon-card cursor-pointer p-2.5 rounded-xl bg-slate-950/90 border-2 border-slate-800 flex items-center justify-between transition">
+                                <div>
+                                    <div class="text-xs font-black text-white flex items-center gap-1.5">
+                                        <span>🔥 تفنگ رگبار (AK-47 / SMG)</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">۱۰۰ تیر</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">شلیک رگباری خودکار با نگه داشتن کلیک، لگد واقعی</p>
+                                </div>
+                                <span class="text-slate-400 text-xs font-bold">کلید 3</span>
+                            </div>
+
+                            <!-- شات‌گان -->
+                            <div data-weapon="shotgun" class="weapon-card cursor-pointer p-2.5 rounded-xl bg-slate-950/90 border-2 border-slate-800 flex items-center justify-between transition">
+                                <div>
+                                    <div class="text-xs font-black text-white flex items-center gap-1.5">
+                                        <span>💥 شات‌گان جنگی (Shotgun)</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300">۱۰۰ تیر</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">پخش ۶ ساچمه همزمان، عقب‌راندن شدید دشمنان</p>
+                                </div>
+                                <span class="text-slate-400 text-xs font-bold">کلید 4</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-2">
+                            * در داخل بازی با کلیدهای <kbd class="px-1 bg-slate-800 rounded">1</kbd> تا <kbd class="px-1 bg-slate-800 rounded">4</kbd> می‌توانید بین هر ۴ سلاح جابجا شوید (هر کدام ۱۰۰ تیر دارند!). کلید <kbd class="px-1 bg-slate-800 rounded">5</kbd> مخصوص آرپی‌جی بی‌نهایت مرحله ۳ است.
+                        </p>
+                    </div>
+
+                    <!-- دکمه‌های ورود به بازی و بخش آنلاین -->
+                    <div class="space-y-2.5 pt-2 border-t border-slate-800">
+                        <button id="startSoloBtn" class="neon-btn w-full py-3 px-4 rounded-2xl bg-gradient-to-l from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-base shadow-lg flex items-center justify-center gap-2">
+                            <span>🚀 شروع بازی (مرحله ۱ تا ۵)</span>
+                        </button>
+
+                        <button id="openOnlineModalBtn" class="neon-btn w-full py-3 px-4 rounded-2xl bg-gradient-to-l from-sky-500 via-indigo-500 to-purple-600 text-white font-black text-base shadow-lg flex items-center justify-center gap-2 border border-sky-300/30">
+                            <span>🌐 گزینه آنلاین (ورود به مپ و کد ۴ رقمی)</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== مودال بخش آنلاین و کد دعوت ۴ رقمی =================== -->
+    <div id="onlineLobbyModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+        <div class="glass-panel rounded-3xl w-full max-w-2xl p-6 border border-sky-400/40 relative">
+            <button id="closeOnlineModalBtn" class="absolute top-4 left-4 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold">
+                بازگشت ✕
+            </button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-2xl">🌐</div>
+                <div>
+                    <h2 class="text-xl font-black text-white">بخش آنلاین و ورود به مپ مشترک</h2>
+                    <p class="text-xs text-slate-400">با کد دعوت ۴ رقمی با دوست خود وارد یک مپ شوید و با هم بازی کنید</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- بخش ۱: ساخت مپ و دریافت کد ۴ رقمی -->
+                <div class="bg-slate-900/90 p-4 rounded-2xl border border-emerald-500/30 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-black text-emerald-400 mb-1">۱. ورود به مپ (ساخت اتاق جدید)</h3>
+                        <p class="text-xs text-slate-400 mb-3">
+                            قبل از شروع بازی یک کد ۴ رقمی مخصوص شما ساخته می‌شود. آن را به دوستتان بدهید تا جوین شود!
+                        </p>
+                        <button id="createRoomBtn" class="neon-btn w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm">
+                            ساخت کد ۴ رقمی و مپ آنلاین
+                        </button>
+
+                        <!-- نمایش کد ۴ رقمی ساخته شده -->
+                        <div id="hostedRoomBox" class="hidden mt-4 p-3 rounded-xl bg-slate-950 border border-emerald-500/50 text-center">
+                            <div class="text-[11px] text-slate-400">کد دعوت ۴ رقمی مپ شما:</div>
+                            <div id="generatedCodeDisplay" class="text-3xl font-black tracking-[0.25em] text-amber-300 my-1.5 select-all">----</div>
+                            <div id="lobbyPlayersList" class="text-xs text-emerald-300 font-bold mb-2">منتظر ورود دوست شما...</div>
+                            <button id="enterMapOnlineBtn" class="neon-btn w-full py-2 rounded-lg bg-gradient-to-l from-amber-400 to-orange-500 text-slate-950 font-black text-xs">
+                                ▶ ورود به داخل مپ (شروع بازی آنلاین)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش ۲: جستجوی کد دعوت ۴ رقمی دوست -->
+                <div class="bg-slate-900/90 p-4 rounded-2xl border border-sky-500/30 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-black text-sky-400 mb-1">۲. بخش کد دعوت (جوین شدن به دوست)</h3>
+                        <p class="text-xs text-slate-400 mb-3">
+                            کد ۴ رقمی که برای دوستتان نمایان شده را وارد کنید تا مستقیماً وارد مپ او شوید:
+                        </p>
+                        <input id="joinCodeInput" type="text" maxlength="4" placeholder="مثلاً 4829"
+                            class="w-full bg-slate-950 border-2 border-slate-700 focus:border-sky-400 rounded-xl py-2.5 text-center text-2xl font-black tracking-[0.3em] text-white outline-none mb-3">
+                        <button id="joinRoomBtn" class="neon-btn w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-sm">
+                            🔍 جستجوی کد و ورود به بازی دوست
+                        </button>
+                        <div id="joinStatusMsg" class="text-xs text-center mt-2 font-bold text-amber-300 min-h-[20px]"></div>
+                    </div>
+
+                    <!-- گزینه یار کمکی هوشمند برای تست رقابت آرپی‌جی در حالت تک‌نفره -->
+                    <div class="mt-3 pt-3 border-t border-slate-800">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input id="enableCoopPartnerCheckbox" type="checkbox" class="w-4 h-4 accent-sky-400 rounded">
+                            <span>اضافه کردن هم‌تیمی شبیه‌ساز آنلاین (برای تست چت و رقابت برداشتن آرپی‌جی مرحله ۳ حتی اگر تنها هستید!)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== HUD بالای صفحه داخل بازی =================== -->
+    <div id="gameHud" class="fixed top-0 inset-x-0 z-20 pointer-events-none p-3 hidden flex-col gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <!-- اطلاعات بازیکن و جان -->
+            <div class="glass-panel pointer-events-auto px-3.5 py-2 rounded-2xl flex items-center gap-3 border border-slate-700/80">
+                <!-- پرچم ایران کوچک کنار نام -->
+                <div class="w-7 h-5 rounded overflow-hidden border border-white/40 flex flex-col shrink-0">
+                    <div class="h-1.5 bg-emerald-500"></div>
+                    <div class="h-2 bg-white flex items-center justify-center"><span class="text-[6px] text-rose-600 font-bold">☫</span></div>
+                    <div class="h-1.5 bg-rose-600"></div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span id="hudPlayerName" class="text-xs font-black text-white">جنگجو</span>
+                        <span id="hudDoubleJumpBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                            🍌 دابل جامپ فعال!
+                        </span>
+                    </div>
+                    <!-- نوار جان بازیکن -->
+                    <div class="w-36 md:w-44 h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700 mt-1 relative">
+                        <div id="hudHpBar" class="h-full bg-gradient-to-l from-emerald-400 to-rose-500 transition-all duration-150" style="width: 100%;"></div>
+                        <span id="hudHpText" class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-white drop-shadow">100 / 100</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- اطلاعات مرحله و کد اتاق آنلاین -->
+            <div class="glass-panel pointer-events-auto px-4 py-2 rounded-2xl flex items-center gap-3 border border-sky-500/30">
+                <div class="text-center">
+                    <div id="hudLevelTitle" class="text-xs md:text-sm font-black text-sky-300">مرحله ۱ از ۵: روستای آغاز</div>
+                    <div id="hudObjectiveText" class="text-[11px] text-slate-300">با اهالی صحبت کنید (کلیک) و دشمنان را بکشید تا دروازه باز شود</div>
+                </div>
+                <div id="hudRoomCodeBox" class="hidden pl-2 border-r border-slate-700 pr-3 text-center">
+                    <div class="text-[10px] text-slate-400">کد مپ آنلاین</div>
+                    <div id="hudRoomCodeText" class="text-sm font-black text-amber-300 tracking-widest">----</div>
+                </div>
+                <!-- دکمه تغییر سریع مرحله برای تست راحت یا بازگشت به منو -->
+                <div class="flex items-center gap-1.5">
+                    <select id="quickLevelSelect" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold rounded-xl px-2 py-1 outline-none cursor-pointer" title="انتخاب مرحله">
+                        <option value="1">مرحله ۱ (اهالی و روستا)</option>
+                        <option value="2">مرحله ۲ (دره تله‌ها)</option>
+                        <option value="3">مرحله ۳ (باس حرص‌درآر + آرپی‌جی)</option>
+                        <option value="4">مرحله ۴ (قلعه تاریک)</option>
+                        <option value="5">مرحله ۵ (مسیر طولانی + باس نهایی)</option>
+                    </select>
+                    <button id="backToMenuBtn" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-rose-600/80 text-xs font-bold text-slate-200 transition">
+                        منو
+                    </button>
+                </div>
+            </div>
+
+            <!-- نوار اسلحه‌ها و تیرها -->
+            <div id="hudWeaponsBar" class="glass-panel pointer-events-auto px-2.5 py-1.5 rounded-2xl flex items-center gap-1.5 border border-slate-700/80">
+                <button data-slot="pistol" class="hud-weapon-slot px-2.5 py-1 rounded-xl bg-slate-900 border border-sky-400 text-right">
+                    <div class="text-[10px] font-black text-sky-300">1. کلت</div>
+                    <div id="ammo-pistol" class="text-xs font-black text-white">100</div>
+                </button>
+                <button data-slot="mk12" class="hud-weapon-slot px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-right">
+                    <div class="text-[10px] font-black text-emerald-300">2. MK12</div>
+                    <div id="ammo-mk12" class="text-xs font-black text-white">100</div>
+                </button>
+                <button data-slot="rifle" class="hud-weapon-slot px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-right">
+                    <div class="text-[10px] font-black text-amber-300">3. رگبار</div>
+                    <div id="ammo-rifle" class="text-xs font-black text-white">100</div>
+                </button>
+                <button data-slot="shotgun" class="hud-weapon-slot px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-right">
+                    <div class="text-[10px] font-black text-rose-300">4. شات‌گان</div>
+                    <div id="ammo-shotgun" class="text-xs font-black text-white">100</div>
+                </button>
+                <button id="slot-rpg-btn" data-slot="rpg" class="hud-weapon-slot hidden px-2.5 py-1 rounded-xl bg-amber-500/20 border-2 border-amber-400 text-right gold-glow">
+                    <div class="text-[10px] font-black text-amber-300">5. آرپی‌جی</div>
+                    <div id="ammo-rpg" class="text-xs font-black text-amber-200">∞ بی‌نهایت</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- نوار جان باس (در مراحل ۳ و ۵ ظاهر می‌شود) -->
+        <div id="bossHudContainer" class="hidden w-full max-w-2xl mx-auto glass-panel px-4 py-2 rounded-2xl border border-rose-500/50">
+            <div class="flex items-center justify-between text-xs font-black mb-1">
+                <span id="bossNameLabel" class="text-rose-400">👹 غول مرحله ۳: شوالیه حرص‌درآر</span>
+                <span id="bossHpLabel" class="text-rose-200">1500 / 1500</span>
+            </div>
+            <div class="w-full h-3.5 bg-slate-950 rounded-full overflow-hidden border border-rose-500/40">
+                <div id="bossHpBar" class="h-full bg-gradient-to-l from-rose-500 via-orange-500 to-amber-400 transition-all duration-100" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== اعلان وسط صفحه (برداشتن با دکمه E و پیام‌های مهم) =================== -->
+    <div id="centerPromptBanner" class="fixed top-28 inset-x-0 z-20 pointer-events-none flex justify-center hidden">
+        <div id="centerPromptText" class="glass-panel px-5 py-2.5 rounded-2xl border-2 border-amber-400 text-amber-300 font-black text-sm md:text-base shadow-2xl gold-glow">
+            دکمه [E] را بزنید!
+        </div>
+    </div>
+
+    <!-- =================== بخش چت داخل بازی (با زدن دکمه T باز می‌شود) =================== -->
+    <div id="chatWidget" class="fixed bottom-3 right-3 left-3 md:left-auto md:w-[430px] z-30 hidden flex-col gap-2 pointer-events-auto">
+        <!-- تاریخچه پیام‌ها -->
+        <div id="chatMessagesBox" class="glass-panel rounded-2xl p-3 max-h-36 overflow-y-auto custom-scroll text-xs space-y-1.5 border border-slate-700/80">
+            <div class="text-slate-400">💬 سیستم چت: دکمه <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-sky-300 font-bold">T</kbd> را بزنید تا چت کنید. (راز: عدد <b class="text-amber-300">206</b> را بنویسید تا NPC «26 به توان 26» به شما موز دابل‌جامپ بدهد!)</div>
+        </div>
+
+        <!-- کادر تایپ چت (با زدن T فعال می‌شود) -->
+        <div id="chatInputContainer" class="hidden glass-panel rounded-2xl p-2 border-2 border-sky-400 flex items-center gap-2">
+            <input id="chatInputField" type="text" maxlength="60" placeholder="پیام خود را بنویسید (مثلاً 206) و Enter بزنید..."
+                class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white outline-none">
+            <button id="sendChatBtn" class="px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs">
+                ارسال
+            </button>
+            <button id="closeChatBtn" class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold">
+                ✕
+            </button>
+        </div>
+
+        <!-- دکمه راهنمای کوچک وقتی چت بسته است -->
+        <div id="chatCollapsedHint" class="flex items-center gap-2">
+            <button id="openChatBtnMobile" class="glass-panel px-3 py-1.5 rounded-xl text-xs font-bold text-sky-300 border border-sky-500/30 hover:bg-slate-800 transition">
+                💬 چت داخل بازی (دکمه T)
+            </button>
+            <button id="pickupBtnMobile" class="glass-panel px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 border border-amber-500/30 hover:bg-slate-800 transition">
+                🖐️ برداشتن آیتم / موز / آرپی‌جی (دکمه E)
+            </button>
+        </div>
+    </div>
+
+    <!-- =================== کنترل‌های لمسی موبایل =================== -->
+    <div id="mobileTouchControls" class="fixed bottom-3 left-3 z-20 hidden md:hidden items-center gap-2 pointer-events-auto">
+        <button id="touchLeft" class="w-12 h-12 rounded-2xl glass-panel border border-slate-600 flex items-center justify-center text-lg font-black active:bg-sky-500/30">▶</button>
+        <button id="touchRight" class="w-12 h-12 rounded-2xl glass-panel border border-slate-600 flex items-center justify-center text-lg font-black active:bg-sky-500/30">◀</button>
+        <button id="touchJump" class="w-12 h-12 rounded-2xl glass-panel border border-emerald-500/50 flex items-center justify-center text-xs font-black text-emerald-300 active:bg-emerald-500/30">پرش</button>
+        <button id="touchDash" class="w-12 h-12 rounded-2xl glass-panel border border-purple-500/50 flex items-center justify-center text-xs font-black text-purple-300 active:bg-purple-500/30">دش</button>
+        <button id="touchShoot" class="w-14 h-12 rounded-2xl bg-rose-600/80 border border-rose-400 flex items-center justify-center text-xs font-black text-white active:bg-rose-500">شلیک</button>
+    </div>
+
+    <!-- =================== مودال پیروزی نهایی مرحله ۵ =================== -->
+    <div id="victoryModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+        <div class="glass-panel rounded-3xl max-w-lg w-full p-7 text-center border-2 border-amber-400 gold-glow">
+            <div class="text-6xl mb-3">🏆🇮🇷</div>
+            <h2 class="text-3xl font-black text-amber-300 mb-2">تبریک! هر ۵ مرحله فتح شد!</h2>
+            <p class="text-sm text-slate-300 leading-relaxed mb-5">
+                شما با مهارت فوق‌العاده از تمام تله‌ها، اهالی روستا، غول مرحله ۳ و باس‌فایت نهایی مرحله ۵ عبور کردید و پرچم ایران را در قله پیروزی به اهتزاز درآوردید!
+            </p>
+            <div class="flex items-center justify-center gap-3">
+                <button id="replayGameBtn" class="neon-btn px-6 py-3 rounded-2xl bg-gradient-to-l from-emerald-500 to-teal-500 text-slate-950 font-black text-sm">
+                    🔄 بازی مجدد از مرحله ۱
+                </button>
+                <button id="victoryMenuBtn" class="neon-btn px-6 py-3 rounded-2xl bg-slate-800 text-white font-bold text-sm border border-slate-600">
+                    بازگشت به منوی اصلی
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== اسکریپت اصلی بازی و اتصال آنلاین Firebase =================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ------------------- ۱. راه‌اندازی Firebase برای بخش آنلاین ۴ رقمی -------------------
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'iran-knight-platformer-5';
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let activeRoomCode = null;
+        let roomUnsubscribe = null;
+        let lastSyncTime = 0;
+
+        async function initFirebase() {
+            try {
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    onAuthStateChanged(auth, (user) => {
+                        currentUser = user;
+                    });
+                }
+            } catch (err) {
+                console.warn("Firebase fallback to local session mode:", err);
+            }
+        }
+        initFirebase();
+
+        // ------------------- ۲. موتور صوتی سنتز (بدون نیاز به فایل خارجی) -------------------
+        const AudioEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playGunshot(type) {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                // نویز انفجار شلیک
+                const bufferSize = this.ctx.sampleRate * (type === 'rpg' ? 0.45 : type === 'shotgun' ? 0.22 : 0.1);
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(type === 'mk12' ? 2800 : type === 'shotgun' ? 900 : type === 'rpg' ? 450 : 1600, now);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(type === 'shotgun' || type === 'rpg' ? 0.35 : 0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + (type === 'rpg' ? 0.45 : 0.14));
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            },
+            playJump(isDouble = false) {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = isDouble ? 'triangle' : 'sine';
+                osc.frequency.setValueAtTime(isDouble ? 360 : 220, now);
+                osc.frequency.exponentialRampToValueAtTime(isDouble ? 780 : 520, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.16);
+            },
+            playTalk() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(320 + Math.random() * 180, now);
+                osc.frequency.setValueAtTime(420 + Math.random() * 200, now + 0.06);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.14);
+            },
+            playReward() {
+                this.init();
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.5];
+                notes.forEach((freq, idx) => {
+                    const now = this.ctx.currentTime + idx * 0.08;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                });
+            }
+        };
+
+        // ------------------- ۳. تنظیمات کاراکتر و اسلحه‌ها -------------------
+        const SKIN_COLORS = ['#f8fafc', '#fde68a', '#f59e0b', '#d97706', '#38bdf8', '#a855f7', '#4ade80'];
+        const OUTFIT_COLORS = ['#0f172a', '#dc2626', '#2563eb', '#16a34a', '#9333ea', '#eab308', '#ec4899'];
+
+        const WEAPON_SPECS = {
+            pistol: {
+                id: 'pistol',
+                name: 'کلت کمری',
+                damage: 28,
+                cooldown: 220, // میلی‌ثانیه
+                speed: 22,
+                range: 1350, // برد زیاد
+                spread: 0.02,
+                pellets: 1,
+                auto: false,
+                color: '#38bdf8',
+                knockback: 3.5,
+                length: 18
+            },
+            mk12: {
+                id: 'mk12',
+                name: 'تفنگ MK12',
+                damage: 58,
+                cooldown: 310,
+                speed: 32, // سرعت تیر بسیار بالا مثل واقعیت
+                range: 2100, // برد فوق‌العاده زیاد
+                spread: 0.004, // دقت لیزری
+                pellets: 1,
+                auto: false,
+                color: '#34d399',
+                knockback: 6.5,
+                length: 30
+            },
+            rifle: {
+                id: 'rifle',
+                name: 'تفنگ رگبار AK',
+                damage: 22,
+                cooldown: 95, // رگبار سریع
+                speed: 24,
+                range: 1500,
+                spread: 0.065, // لگد طبیعی رگبار
+                pellets: 1,
+                auto: true,
+                color: '#fbbf24',
+                knockback: 2.8,
+                length: 26
+            },
+            shotgun: {
+                id: 'shotgun',
+                name: 'شات‌گان جنگی',
+                damage: 19, // ۶ ساچمه × ۱۹ = ۱۱۴ دمیج نزدیک
+                cooldown: 620,
+                speed: 20,
+                range: 950,
+                spread: 0.22,
+                pellets: 6, // ۶ ساچمه همزمان
+                auto: false,
+                color: '#fb7185',
+                knockback: 5.5,
+                length: 25
+            },
+            rpg: {
+                id: 'rpg',
+                name: 'آرپی‌جی بی‌نهایت',
+                damage: 240, // انفجار سنگین
+                cooldown: 750,
+                speed: 18,
+                range: 2000,
+                spread: 0.01,
+                pellets: 1,
+                auto: false,
+                explosive: true,
+                blastRadius: 150,
+                color: '#facc15',
+                knockback: 14,
+                length: 34
+            }
+        };
+
+        // وضعیت شخصی‌سازی بازیکن
+        const playerConfig = {
+            id: 'p_' + Math.floor(100000 + Math.random() * 900000),
+            name: 'جنگجوی ایرانی',
+            skinColor: SKIN_COLORS[0],
+            outfitStyle: 'knight',
+            outfitColor: OUTFIT_COLORS[1],
+            hat: 'horns',
+            glasses: 'none',
+            flag: 'iran', // فقط پرچم ایران
+            startingWeapon: 'pistol'
+        };
+
+        // ------------------- ۴. رابط کاربری شخصی‌سازی و پیش‌نمایش زنده -------------------
+        const skinColorContainer = document.getElementById('skinColorOptions');
+        SKIN_COLORS.forEach((col, i) => {
+            const btn = document.createElement('button');
+            btn.className = `w-7 h-7 rounded-full border-2 transition ${i === 0 ? 'border-sky-400 scale-110' : 'border-slate-600'}`;
+            btn.style.backgroundColor = col;
+            btn.onclick = () => {
+                playerConfig.skinColor = col;
+                [...skinColorContainer.children].forEach(c => c.className = 'w-7 h-7 rounded-full border-2 border-slate-600 transition');
+                btn.className = 'w-7 h-7 rounded-full border-2 border-sky-400 scale-110 transition';
+            };
+            skinColorContainer.appendChild(btn);
+        });
+
+        const outfitColorContainer = document.getElementById('outfitColorOptions');
+        OUTFIT_COLORS.forEach((col, i) => {
+            const btn = document.createElement('button');
+            btn.className = `w-6 h-6 rounded-full border-2 transition ${i === 1 ? 'border-sky-400 scale-110' : 'border-slate-600'}`;
+            btn.style.backgroundColor = col;
+            btn.onclick = () => {
+                playerConfig.outfitColor = col;
+                [...outfitColorContainer.children].forEach(c => c.className = 'w-6 h-6 rounded-full border-2 border-slate-600 transition');
+                btn.className = 'w-6 h-6 rounded-full border-2 border-sky-400 scale-110 transition';
+            };
+            outfitColorContainer.appendChild(btn);
+        });
+
+        document.getElementById('outfitStyleSelect').addEventListener('change', (e) => {
+            playerConfig.outfitStyle = e.target.value;
+        });
+
+        document.querySelectorAll('.hat-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                playerConfig.hat = btn.dataset.hat;
+                document.querySelectorAll('.hat-btn').forEach(b => {
+                    b.className = 'hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300';
+                });
+                btn.className = 'hat-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 border border-sky-400 text-white';
+            });
+        });
+
+        document.querySelectorAll('.glasses-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                playerConfig.glasses = btn.dataset.glasses;
+                document.querySelectorAll('.glasses-btn').forEach(b => {
+                    b.className = 'glasses-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300';
+                });
+                btn.className = 'glasses-btn px-2 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 border border-sky-400 text-white';
+            });
+        });
+
+        document.querySelectorAll('.weapon-card').forEach(card => {
+            card.addEventListener('click', () => {
+                playerConfig.startingWeapon = card.dataset.weapon;
+                document.querySelectorAll('.weapon-card').forEach(c => {
+                    c.className = 'weapon-card cursor-pointer p-2.5 rounded-xl bg-slate-950/90 border-2 border-slate-800 flex items-center justify-between transition';
+                });
+                card.className = 'weapon-card cursor-pointer p-2.5 rounded-xl bg-slate-950/90 border-2 border-sky-400 flex items-center justify-between transition';
+            });
+        });
+
+        document.getElementById('playerNameInput').addEventListener('input', (e) => {
+            playerConfig.name = e.target.value.trim() || 'جنگجوی ایرانی';
+        });
+
+        // ------------------- ۵. تابع رسم کاراکتر (مشترک بین پیش‌نمایش، بازیکن اصلی و هم‌تیمی آنلاین) -------------------
+        function drawCharacter(ctx, charState, time) {
+            ctx.save();
+            ctx.translate(charState.x, charState.y);
+
+            const facing = charState.facing || 1;
+            const walkCycle = charState.isMoving ? Math.sin(time * 0.018) : 0;
+            const breathe = Math.sin(time * 0.005) * 1.5;
+
+            // افکت دابل جامپ یا دش
+            if (charState.dashTimer > 0) {
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 18;
+            }
+
+            // ۱. شنل مواج پرچم ایران / شنل هالونایت در پشت کاراکتر
+            ctx.save();
+            const capeWave = Math.sin(time * 0.012 + (charState.x * 0.05)) * 5 - (charState.vx || 0) * 1.6;
+            ctx.beginPath();
+            ctx.moveTo(-4 * facing, -12);
+            ctx.quadraticCurveTo(-18 * facing + capeWave, 2, -22 * facing + capeWave * 1.3, 18);
+            ctx.lineTo(-6 * facing, 16);
+            ctx.closePath();
+            ctx.fillStyle = charState.outfitColor || '#dc2626';
+            ctx.fill();
+
+            // نشان پرچم ایران روی شنل/بازو (تک پرچم اختصاصی ایران)
+            ctx.save();
+            ctx.translate(-12 * facing + capeWave * 0.4, 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(-7, -5, 14, 3.3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-7, -1.7, 14, 3.3);
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(-7, 1.6, 14, 3.3);
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.lineWidth = 0.8;
+            ctx.strokeRect(-7, -5, 14, 10);
+            ctx.restore();
+            ctx.restore();
+
+            // ۲. پاها (انیمیشن نرم دویدن به سبک هالونایت)
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4.5;
+            ctx.lineCap = 'round';
+            // پای عقب
+            ctx.beginPath();
+            ctx.moveTo(-3, 12);
+            ctx.lineTo(-3 - walkCycle * 9, 25);
+            ctx.stroke();
+            // پای جلو
+            ctx.beginPath();
+            ctx.moveTo(4, 12);
+            ctx.lineTo(4 + walkCycle * 9, 25);
+            ctx.stroke();
+
+            // ۳. تنه و لباس
+            ctx.save();
+            ctx.translate(0, breathe * 0.4);
+            ctx.fillStyle = charState.outfitColor || '#dc2626';
+            ctx.beginPath();
+            ctx.roundRect(-11, -12, 22, 26, 7);
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+            ctx.stroke();
+
+            // جزئیات مدل لباس
+            if (charState.outfitStyle === 'tactical') {
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(-9, -6, 18, 14);
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(-7, -3, 5, 4);
+                ctx.fillRect(2, -3, 5, 4);
+            } else if (charState.outfitStyle === 'royal') {
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(-8, -9, 16, 20);
+            } else if (charState.outfitStyle === 'hoodie') {
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fillRect(-8, 3, 16, 8);
+            }
+
+            // پلاک پرچم ایران روی سینه
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(-5, -9, 10, 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-5, -7, 10, 2);
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(-5, -5, 10, 2);
+
+            // ۴. سر کاراکتر (ماسک/سر نرم هالونایت با رنگ پوست دلخواه)
+            ctx.fillStyle = charState.skinColor || '#f8fafc';
+            ctx.beginPath();
+            ctx.roundRect(-13, -34, 26, 23, 10);
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#0f172a';
+            ctx.stroke();
+
+            // چشم‌ها
+            ctx.fillStyle = '#090b10';
+            const eyeOffsetX = facing * 4;
+            ctx.beginPath();
+            ctx.ellipse(eyeOffsetX - 4, -22, 2.8, 4.2, 0, 0, Math.PI * 2);
+            ctx.ellipse(eyeOffsetX + 5, -22, 2.8, 4.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ۵. عینک‌ها
+            if (charState.glasses === 'sunglasses') {
+                ctx.fillStyle = '#020617';
+                ctx.strokeStyle = '#f8fafc';
+                ctx.lineWidth = 1.2;
+                ctx.fillRect(eyeOffsetX - 9, -26, 8, 6);
+                ctx.fillRect(eyeOffsetX + 1, -26, 8, 6);
+                ctx.strokeRect(eyeOffsetX - 9, -26, 8, 6);
+                ctx.strokeRect(eyeOffsetX + 1, -26, 8, 6);
+                ctx.beginPath();
+                ctx.moveTo(eyeOffsetX - 1, -24);
+                ctx.lineTo(eyeOffsetX + 1, -24);
+                ctx.stroke();
+            } else if (charState.glasses === 'cyber') {
+                ctx.fillStyle = '#06b6d4';
+                ctx.shadowColor = '#22d3ee';
+                ctx.shadowBlur = 10;
+                ctx.fillRect(eyeOffsetX - 9, -25, 19, 5);
+                ctx.shadowBlur = 0;
+            } else if (charState.glasses === 'round') {
+                ctx.strokeStyle = '#fbbf24';
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.arc(eyeOffsetX - 4, -22, 4.5, 0, Math.PI * 2);
+                ctx.arc(eyeOffsetX + 5, -22, 4.5, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // ۶. کلاه‌ها
+            const hat = charState.hat || 'horns';
+            if (hat === 'horns') {
+                // شاخ‌های سفید نمادین به سبک هالونایت
+                ctx.fillStyle = '#f8fafc';
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 1.8;
+                // شاخ چپ
+                ctx.beginPath();
+                ctx.moveTo(-9, -32);
+                ctx.quadraticCurveTo(-18, -48, -7, -52);
+                ctx.quadraticCurveTo(-10, -42, -4, -33);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                // شاخ راست
+                ctx.beginPath();
+                ctx.moveTo(9, -32);
+                ctx.quadraticCurveTo(18, -48, 7, -52);
+                ctx.quadraticCurveTo(10, -42, 4, -33);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            } else if (hat === 'cap') {
+                ctx.fillStyle = '#2563eb';
+                ctx.beginPath();
+                ctx.arc(0, -32, 13, Math.PI, 0);
+                ctx.fill();
+                ctx.fillRect(0, -35, 18 * facing, 4);
+            } else if (hat === 'cowboy') {
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(-20, -35, 40, 4);
+                ctx.beginPath();
+                ctx.roundRect(-11, -45, 22, 11, 4);
+                ctx.fill();
+            } else if (hat === 'crown') {
+                ctx.fillStyle = '#facc15';
+                ctx.strokeStyle = '#ca8a04';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(-11, -33);
+                ctx.lineTo(-11, -46);
+                ctx.lineTo(-4, -39);
+                ctx.lineTo(0, -48);
+                ctx.lineTo(4, -39);
+                ctx.lineTo(11, -46);
+                ctx.lineTo(11, -33);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            } else if (hat === 'helmet') {
+                ctx.fillStyle = '#475569';
+                ctx.beginPath();
+                ctx.arc(0, -31, 14.5, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(-14, -34, 28, 4);
+            }
+
+            // ۷. رسم اسلحه در دست کاراکتر با زاویه هدف‌گیری واقعی
+            const weaponKey = charState.weapon || 'pistol';
+            const spec = WEAPON_SPECS[weaponKey] || WEAPON_SPECS.pistol;
+            const aimAngle = typeof charState.aimAngle === 'number' ? charState.aimAngle : (facing === 1 ? 0 : Math.PI);
+
+            ctx.save();
+            ctx.translate(2 * facing, 0);
+            ctx.rotate(aimAngle);
+            if (Math.abs(aimAngle) > Math.PI / 2) {
+                ctx.scale(1, -1);
+            }
+
+            // بدنه اسلحه بر اساس نوع
+            if (weaponKey === 'pistol') {
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(4, -4, 15, 5);
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(4, 0, 5, 7);
+            } else if (weaponKey === 'mk12') {
+                // تفنگ دوربین‌دار بلند MK12
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(-4, -3, 18, 6);
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(14, -2, 18, 3.5);
+                // دوربین اسنایپ
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(2, -7, 11, 3);
+            } else if (weaponKey === 'rifle') {
+                // کلاشینکف / رگبار
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(-5, -2, 8, 5);
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(3, -4, 16, 6);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillRect(9, 2, 4, 8); // خشاب خمیده
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(19, -3, 9, 3);
+            } else if (weaponKey === 'shotgun') {
+                // شات‌گان دولول ضخیم
+                ctx.fillStyle = '#7c2d12';
+                ctx.fillRect(-4, -2, 10, 5);
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(6, -4, 20, 6);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(10, 2, 8, 3);
+            } else if (weaponKey === 'rpg') {
+                // آرپی‌جی طلایی بی‌نهایت
+                ctx.fillStyle = '#ca8a04';
+                ctx.fillRect(-10, -4, 30, 7);
+                // کلاهک موشک آرپی‌جی
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.moveTo(20, -7);
+                ctx.lineTo(33, -0.5);
+                ctx.lineTo(20, 6);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+            ctx.restore();
+
+            // ۸. نام بازیکن بالای سر
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+            ctx.font = 'bold 11px Vazirmatn';
+            const nameWidth = ctx.measureText(charState.name || 'بازیکن').width + 14;
+            ctx.beginPath();
+            ctx.roundRect(-nameWidth / 2, -68, nameWidth, 18, 6);
+            ctx.fill();
+            ctx.fillStyle = charState.isLocal ? '#38bdf8' : '#4ade80';
+            ctx.textAlign = 'center';
+            ctx.fillText(charState.name || 'بازیکن', 0, -55);
+
+            // ۹. حباب چت بالای سر بازیکن (وقتی با دکمه T چت کرده باشد)
+            if (charState.chatText && charState.chatTimer > 0) {
+                ctx.font = 'bold 13px Vazirmatn';
+                const bw = Math.max(60, ctx.measureText(charState.chatText).width + 22);
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#0284c7';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(-bw / 2, -98, bw, 26, 10);
+                ctx.fill();
+                ctx.stroke();
+
+                // فلش کوچک پایین حباب چت
+                ctx.beginPath();
+                ctx.moveTo(-5, -72);
+                ctx.lineTo(5, -72);
+                ctx.lineTo(0, -66);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.fillText(charState.chatText, 0, -81);
+            }
+
+            ctx.restore();
+        }
+
+        // حلقه پیش‌نمایش زنده کاراکتر در منوی اول
+        const previewCanvas = document.getElementById('previewCanvas');
+        const previewCtx = previewCanvas.getContext('2d');
+        function renderPreviewLoop(ts) {
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            // پس‌زمینه سکوی پیش‌نمایش
+            previewCtx.fillStyle = '#1e293b';
+            previewCtx.beginPath();
+            previewCtx.roundRect(70, 175, 180, 16, 8);
+            previewCtx.fill();
+
+            drawCharacter(previewCtx, {
+                x: 160,
+                y: 150,
+                facing: 1,
+                isMoving: true,
+                vx: 2,
+                name: playerConfig.name,
+                skinColor: playerConfig.skinColor,
+                outfitStyle: playerConfig.outfitStyle,
+                outfitColor: playerConfig.outfitColor,
+                hat: playerConfig.hat,
+                glasses: playerConfig.glasses,
+                weapon: playerConfig.startingWeapon,
+                aimAngle: Math.sin(ts * 0.002) * 0.2,
+                isLocal: true
+            }, ts);
+
+            requestAnimationFrame(renderPreviewLoop);
+        }
+        requestAnimationFrame(renderPreviewLoop);
+
+        // ------------------- ۶. طراحی ۵ مرحله بازی، اهالی (NPCs)، دشمنان و باس‌ها -------------------
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let gameRunning = false;
+        let currentLevel = 1;
+        let isChatOpen = false;
+
+        // وضعیت بازیکن اصلی
+        const player = {
+            x: 160,
+            y: 400,
+            vx: 0,
+            vy: 0,
+            width: 28,
+            height: 54,
+            facing: 1,
+            hp: 100,
+            maxHp: 100,
+            grounded: false,
+            jumpsUsed: 0,
+            maxJumps: 1, // با خوردن موز کد 206 تبدیل به 2 (دابل جامپ) می‌شود!
+            hasDoubleJumpBanana: false,
+            hasInfiniteRpg: false,
+            dashTimer: 0,
+            dashCooldown: 0,
+            weapon: 'pistol',
+            ammo: {
+                pistol: 100,
+                mk12: 100,
+                rifle: 100,
+                shotgun: 100,
+                rpg: Infinity
+            },
+            lastShotTime: 0,
+            aimAngle: 0,
+            chatText: '',
+            chatTimer: 0,
+            invulnTimer: 0
+        };
+
+        // وضعیت بازیکن دوم (دوست آنلاین یا یار شبیه‌ساز)
+        let remotePlayers = {};
+        let simulateCoopBot = false;
+        const coopBot = {
+            active: false,
+            id: 'bot_friend',
+            name: 'امیرحسین (هم‌تیمی)',
+            x: 220,
+            y: 400,
+            vx: 0,
+            vy: 0,
+            facing: 1,
+            skinColor: '#fde68a',
+            outfitStyle: 'tactical',
+            outfitColor: '#2563eb',
+            hat: 'cap',
+            glasses: 'sunglasses',
+            weapon: 'rifle',
+            aimAngle: 0,
+            chatText: '',
+            chatTimer: 0
+        };
+
+        // اجزای دنیای مرحله فعلی
+        let platforms = [];
+        let spikes = [];
+        let npcs = [];
+        let enemies = [];
+        let bullets = [];
+        let particles = [];
+        let groundDrops = []; // شامل موز طلایی (banana) و آرپی‌جی بی‌نهایت مرحله ۳ (rpg)
+        let boss = null;
+        let exitPortal = { x: 2500, y: 420, open: false };
+        let levelWidth = 2800;
+        let cameraX = 0;
+        let screenShake = 0;
+
+        // ساخت مرحله بر اساس شماره (۱ تا ۵)
+        function loadLevel(lvlNum) {
+            currentLevel = lvlNum;
+            document.getElementById('quickLevelSelect').value = String(lvlNum);
+            platforms = [];
+            spikes = [];
+            npcs = [];
+            enemies = [];
+            bullets = [];
+            particles = [];
+            groundDrops = [];
+            boss = null;
+
+            // شارژ مجدد ۱۰۰ تیر برای هر تفنگ در شروع مرحله
+            player.ammo.pistol = 100;
+            player.ammo.mk12 = 100;
+            player.ammo.rifle = 100;
+            player.ammo.shotgun = 100;
+            player.hp = player.maxHp;
+            player.x = 140;
+            player.y = 380;
+            player.vx = 0;
+            player.vy = 0;
+
+            if (coopBot.active) {
+                coopBot.x = 200;
+                coopBot.y = 380;
+            }
+
+            // قرار دادن ۳ اهالی (NPC) محبوب در ابتدای مرحله تا بازیکن بتواند هر زمان روی آن‌ها کلیک کند یا کد 206 را بزند
+            npcs = [
+                {
+                    id: 'npc_mamad',
+                    name: 'اهالی ۱ (ممد)',
+                    x: 290,
+                    y: 475,
+                    color: '#f97316',
+                    hat: 'cap',
+                    phrase: 'ممد فشار',
+                    bubbleTimer: 180
+                },
+                {
+                    id: 'npc_26',
+                    name: 'اهالی ۲ (استاد ۲۶)',
+                    x: 430,
+                    y: 475,
+                    color: '#eab308',
+                    hat: 'crown',
+                    phrase: '26 به توان 26',
+                    bubbleTimer: 180,
+                    gaveBanana: false
+                },
+                {
+                    id: 'npc_moein',
+                    name: 'اهالی ۳ (معین)',
+                    x: 570,
+                    y: 475,
+                    color: '#38bdf8',
+                    hat: 'cowboy',
+                    phrase: 'من معین 26 هستم',
+                    bubbleTimer: 180
+                }
+            ];
+
+            if (lvlNum === 1) {
+                // مرحله ۱: روستای آغاز و پلتفرمینگ ماریو-طور
+                levelWidth = 3100;
+                updateHudInfo('مرحله ۱ از ۵: روستای آغاز و اهالی', 'روی اهالی کلیک کنید، در چت (T) عدد 206 بنویسید تا موز دابل‌جامپ بگیرید و دشمنان را بکشید');
+
+                platforms.push(
+                    { x: 0, y: 500, w: 900, h: 160, type: 'ground' },
+                    { x: 750, y: 400, w: 140, h: 22, type: 'plat' },
+                    { x: 960, y: 330, w: 170, h: 22, type: 'plat' },
+                    { x: 1180, y: 500, w: 680, h: 160, type: 'ground' },
+                    { x: 1400, y: 380, w: 160, h: 22, type: 'moving', baseX: 1400, range: 110, speed: 0.0025 },
+                    { x: 1700, y: 300, w: 160, h: 22, type: 'plat' },
+                    { x: 1940, y: 500, w: 1160, h: 160, type: 'ground' },
+                    { x: 2200, y: 390, w: 180, h: 22, type: 'plat' }
+                );
+                spikes.push(
+                    { x: 1320, y: 484, w: 90, h: 16 },
+                    { x: 2100, y: 484, w: 90, h: 16 }
+                );
+
+                // دشمنان مرحله ۱ (وان‌شات نمی‌شوند و جان بالای سر دارند)
+                spawnEnemy(820, 350, 'گارد آهنین', 160, 2.1, '#ef4444');
+                spawnEnemy(1280, 450, 'تکاور تاریکی', 190, 2.4, '#f97316');
+                spawnEnemy(1600, 450, 'شوالیه نیزه‌دار', 210, 2.5, '#eab308');
+                spawnEnemy(2050, 450, 'نگهبان دروازه', 240, 2.7, '#ec4899');
+                spawnEnemy(2450, 450, 'فرمانده روستا', 280, 3.0, '#a855f7');
+
+                exitPortal = { x: 2880, y: 425, open: false };
+
+            } else if (lvlNum === 2) {
+                // مرحله ۲: دره تله‌ها و تک‌تیراندازها
+                levelWidth = 3400;
+                updateHudInfo('مرحله ۲ از ۵: دره تله‌ها و سکوهای متحرک', 'از تیغ‌ها عبور کنید و تمام نگهبانان زرهی را شکست دهید');
+
+                platforms.push(
+                    { x: 0, y: 500, w: 720, h: 160, type: 'ground' },
+                    { x: 780, y: 420, w: 150, h: 22, type: 'moving', baseX: 780, range: 130, speed: 0.003 },
+                    { x: 1080, y: 340, w: 160, h: 22, type: 'plat' },
+                    { x: 1300, y: 500, w: 620, h: 160, type: 'ground' },
+                    { x: 1520, y: 380, w: 140, h: 22, type: 'plat' },
+                    { x: 1750, y: 290, w: 150, h: 22, type: 'moving', baseX: 1750, range: 140, speed: 0.0035 },
+                    { x: 2040, y: 420, w: 220, h: 22, type: 'plat' },
+                    { x: 2320, y: 500, w: 1080, h: 160, type: 'ground' }
+                );
+                spikes.push(
+                    { x: 1450, y: 484, w: 120, h: 16 },
+                    { x: 1680, y: 484, w: 110, h: 16 },
+                    { x: 2580, y: 484, w: 130, h: 16 }
+                );
+
+                spawnEnemy(1120, 290, 'تک‌تیرانداز کوهستان', 220, 2.5, '#38bdf8', true);
+                spawnEnemy(1380, 450, 'مزدور سپردار', 260, 2.8, '#ef4444');
+                spawnEnemy(1800, 450, 'شکارچی سایه', 240, 3.2, '#a855f7', true);
+                spawnEnemy(2100, 370, 'نگهبان دره', 260, 2.9, '#f59e0b');
+                spawnEnemy(2480, 450, 'غولچه زرهی', 340, 2.6, '#dc2626', true);
+                spawnEnemy(2850, 450, 'سردسته تله‌ها', 360, 3.1, '#ec4899', true);
+
+                exitPortal = { x: 3180, y: 425, open: false };
+
+            } else if (lvlNum === 3) {
+                // مرحله ۳: باس حرص‌درآر با قدرت دش، پرتاب گوی و سرعت بالا + دراپ تکی آرپی‌جی بی‌نهایت
+                levelWidth = 2200;
+                updateHudInfo('مرحله ۳ از ۵: نبرد با غول حرص‌درآر!', 'غول را بکشید و سریع با دکمه E تنها آرپی‌جی بی‌نهایت را قبل از بقیه بردارید!');
+
+                platforms.push(
+                    { x: 0, y: 500, w: 2200, h: 160, type: 'ground' },
+                    { x: 750, y: 365, w: 190, h: 22, type: 'plat' },
+                    { x: 1120, y: 275, w: 220, h: 22, type: 'plat' },
+                    { x: 1490, y: 365, w: 190, h: 22, type: 'plat' }
+                );
+
+                // غول مرحله ۳
+                boss = {
+                    level: 3,
+                    name: '👹 غول مرحله ۳: شوالیه حرص‌درآر (استاد دش و گوی)',
+                    x: 1380,
+                    y: 435,
+                    vx: 0,
+                    vy: 0,
+                    width: 58,
+                    height: 82,
+                    hp: 1550,
+                    maxHp: 1550,
+                    facing: -1,
+                    state: 'chase',
+                    actionTimer: 80,
+                    dashTimer: 0,
+                    color: '#e11d48',
+                    enraged: false
+                };
+
+                exitPortal = { x: 2020, y: 425, open: false };
+
+            } else if (lvlNum === 4) {
+                // مرحله ۴: قلعه تاریک (مناسب استفاده از آرپی‌جی و دابل‌جامپ)
+                levelWidth = 3600;
+                updateHudInfo('مرحله ۴ از ۵: قلعه تاریک و پلتفرمینگ سخت', 'از سکوهای مرتفع قلعه عبور کنید و گاردهای ویژه را نابود کنید');
+
+                platforms.push(
+                    { x: 0, y: 500, w: 680, h: 160, type: 'ground' },
+                    { x: 740, y: 410, w: 130, h: 22, type: 'plat' },
+                    { x: 930, y: 310, w: 130, h: 22, type: 'plat' },
+                    { x: 1140, y: 230, w: 180, h: 22, type: 'moving', baseX: 1140, range: 140, speed: 0.0038 },
+                    { x: 1460, y: 350, w: 220, h: 22, type: 'plat' },
+                    { x: 1740, y: 500, w: 720, h: 160, type: 'ground' },
+                    { x: 2020, y: 370, w: 170, h: 22, type: 'plat' },
+                    { x: 2520, y: 400, w: 160, h: 22, type: 'moving', baseX: 2520, range: 150, speed: 0.004 },
+                    { x: 2820, y: 500, w: 780, h: 160, type: 'ground' }
+                );
+                spikes.push(
+                    { x: 1850, y: 484, w: 130, h: 16 },
+                    { x: 2180, y: 484, w: 130, h: 16 },
+                    { x: 3000, y: 484, w: 140, h: 16 }
+                );
+
+                spawnEnemy(1500, 300, 'کماندوی قلعه', 320, 3.2, '#f43f5e', true);
+                spawnEnemy(1790, 450, 'شوالیه خونین', 380, 3.4, '#a855f7', true);
+                spawnEnemy(2060, 320, 'تک‌تیرانداز قلعه', 300, 3.0, '#38bdf8', true);
+                spawnEnemy(2350, 450, 'جلاد زرهی', 450, 3.2, '#eab308', true);
+                spawnEnemy(2900, 450, 'محافظ تالار پنجم', 480, 3.5, '#ef4444', true);
+                spawnEnemy(3220, 450, 'فرمانده قلعه', 520, 3.6, '#ec4899', true);
+
+                exitPortal = { x: 3420, y: 425, open: false };
+
+            } else if (lvlNum === 5) {
+                // مرحله ۵: مسیر طولانی و سخت + باس‌فایت نهایی
+                levelWidth = 4600;
+                updateHudInfo('مرحله ۵ از ۵: مسیر طولانی مرگبار + باس‌فایت نهایی!', 'از مسیر طولانی تله‌ها عبور کنید و امپراتور تاریکی را در انتهای مپ شکست دهید!');
+
+                platforms.push(
+                    { x: 0, y: 500, w: 680, h: 160, type: 'ground' },
+                    { x: 740, y: 410, w: 130, h: 22, type: 'moving', baseX: 740, range: 110, speed: 0.004 },
+                    { x: 980, y: 320, w: 140, h: 22, type: 'plat' },
+                    { x: 1200, y: 240, w: 140, h: 22, type: 'plat' },
+                    { x: 1420, y: 500, w: 660, h: 160, type: 'ground' },
+                    { x: 1640, y: 370, w: 160, h: 22, type: 'plat' },
+                    { x: 2140, y: 390, w: 160, h: 22, type: 'moving', baseX: 2140, range: 160, speed: 0.0045 },
+                    { x: 2460, y: 290, w: 170, h: 22, type: 'plat' },
+                    { x: 2700, y: 500, w: 1900, h: 160, type: 'ground' }, // میدان بزرگ باس نهایی در انتهای مسیر طولانی
+                    { x: 3150, y: 365, w: 200, h: 22, type: 'plat' },
+                    { x: 3550, y: 270, w: 230, h: 22, type: 'plat' },
+                    { x: 3950, y: 365, w: 200, h: 22, type: 'plat' }
+                );
+                spikes.push(
+                    { x: 1520, y: 484, w: 110, h: 16 },
+                    { x: 1850, y: 484, w: 120, h: 16 },
+                    { x: 2780, y: 484, w: 100, h: 16 }
+                );
+
+                // دشمنان مسیر طولانی قبل از باس
+                spawnEnemy(1020, 270, 'نگهبان مرگ', 350, 3.3, '#f43f5e', true);
+                spawnEnemy(1480, 450, 'تکاور نخبه', 420, 3.5, '#a855f7', true);
+                spawnEnemy(1700, 320, 'اسنایپر ارشد', 360, 3.2, '#38bdf8', true);
+                spawnEnemy(1980, 450, 'شوالیه جهنمی', 460, 3.6, '#f97316', true);
+                spawnEnemy(2500, 240, 'محافظ امپراتور', 480, 3.6, '#eab308', true);
+
+                // باس فایت نهایی مرحله ۵
+                boss = {
+                    level: 5,
+                    name: '👑 باس فایت نهایی مرحله ۵: امپراتور مطلق تاریکی',
+                    x: 3850,
+                    y: 425,
+                    vx: 0,
+                    vy: 0,
+                    width: 68,
+                    height: 96,
+                    hp: 2600,
+                    maxHp: 2600,
+                    facing: -1,
+                    state: 'chase',
+                    actionTimer: 70,
+                    dashTimer: 0,
+                    color: '#9333ea',
+                    enraged: false
+                };
+
+                exitPortal = { x: 4420, y: 425, open: false };
+            }
+
+            updateAmmoHud();
+            updateBossHud();
+        }
+
+        function spawnEnemy(x, y, name, maxHp, speed, color, canShoot = false) {
+            enemies.push({
+                id: 'en_' + Math.random().toString(36).slice(2, 7),
+                name,
+                x,
+                y,
+                baseX: x,
+                patrolRange: 135,
+                vx: speed,
+                speed,
+                width: 32,
+                height: 52,
+                hp: maxHp,
+                maxHp,
+                color,
+                canShoot,
+                shootCooldown: 90 + Math.floor(Math.random() * 80),
+                hitFlash: 0,
+                facing: 1
+            });
+        }
+
+        function updateHudInfo(title, desc) {
+            document.getElementById('hudLevelTitle').textContent = title;
+            document.getElementById('hudObjectiveText').textContent = desc;
+        }
+
+        function updateAmmoHud() {
+            ['pistol', 'mk12', 'rifle', 'shotgun'].forEach(w => {
+                const el = document.getElementById('ammo-' + w);
+                if (el) el.textContent = player.ammo[w];
+            });
+            const rpgBtn = document.getElementById('slot-rpg-btn');
+            if (player.hasInfiniteRpg) {
+                rpgBtn.classList.remove('hidden');
+            } else {
+                rpgBtn.classList.add('hidden');
+            }
+            document.querySelectorAll('.hud-weapon-slot').forEach(slot => {
+                if (slot.dataset.slot === player.weapon) {
+                    slot.classList.add('ring-2', 'ring-sky-400', 'scale-105');
+                } else {
+                    slot.classList.remove('ring-2', 'ring-sky-400', 'scale-105');
+                }
+            });
+        }
+
+        function updateBossHud() {
+            const box = document.getElementById('bossHudContainer');
+            if (boss && boss.hp > 0) {
+                box.classList.remove('hidden');
+                document.getElementById('bossNameLabel').textContent = boss.name;
+                document.getElementById('bossHpLabel').textContent = `${Math.max(0, Math.ceil(boss.hp))} / ${boss.maxHp}`;
+                document.getElementById('bossHpBar').style.width = `${Math.max(0, (boss.hp / boss.maxHp) * 100)}%`;
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        // ------------------- ۷. سیستم چت با دکمه T و راز کد 206 برای جایزه موز -------------------
+        const chatInputContainer = document.getElementById('chatInputContainer');
+        const chatInputField = document.getElementById('chatInputField');
+        const chatMessagesBox = document.getElementById('chatMessagesBox');
+
+        function openChatBox() {
+            if (!gameRunning) return;
+            isChatOpen = true;
+            chatInputContainer.classList.remove('hidden');
+            setTimeout(() => chatInputField.focus(), 20);
+        }
+
+        function closeChatBox() {
+            isChatOpen = false;
+            chatInputContainer.classList.add('hidden');
+            chatInputField.blur();
+        }
+
+        function appendChatMessage(sender, text, isSpecial = false) {
+            const div = document.createElement('div');
+            div.className = isSpecial
+                ? 'p-1.5 rounded-lg bg-amber-500/20 border border-amber-400/50 text-amber-200 font-bold'
+                : 'text-slate-200';
+            div.innerHTML = `<span class="font-black text-sky-400">${sender}:</span> ${text}`;
+            chatMessagesBox.appendChild(div);
+            chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+        }
+
+        function handleSendChat() {
+            const raw = chatInputField.value.trim();
+            if (!raw) {
+                closeChatBox();
+                return;
+            }
+            chatInputField.value = '';
+            closeChatBox();
+
+            // نمایش بالای سر کاراکتر بازیکن در داخل بازی
+            player.chatText = raw;
+            player.chatTimer = 320; // حدود ۵.۵ ثانیه بالای سر می‌ماند
+            AudioEngine.playTalk();
+            appendChatMessage(playerConfig.name, raw);
+
+            // بررسی راز عدد 206 برای اهالی «26 به توان 26»
+            if (raw === '206' || raw.includes('206')) {
+                const npc26 = npcs.find(n => n.id === 'npc_26');
+                const dropX = npc26 ? npc26.x + 45 : player.x + 60 * player.facing;
+                const dropY = npc26 ? npc26.y - 20 : player.y - 10;
+
+                if (npc26) {
+                    npc26.phrase = 'آفرین! کد 206 رو گفتی! بیا این جایزه موز دابل‌جامپ! 🍌';
+                    npc26.bubbleTimer = 380;
+                }
+
+                // انداختن جایزه موز روی زمین
+                groundDrops.push({
+                    id: 'banana_' + Date.now(),
+                    type: 'banana',
+                    x: dropX,
+                    y: dropY,
+                    vy: -6,
+                    name: '🍌 جایزه موز طلایی (دابل جامپ)'
+                });
+
+                AudioEngine.playReward();
+                appendChatMessage('اهالی (26 به توان 26)', '🎁 کد 206 دریافت شد! جایزه «موز طلایی» به زمین افتاد! نزدیکش بروید و با دکمه E آن را بخورید تا دابل جامپ بگیرید!', true);
+            }
+
+            syncStateToFirebase();
+        }
+
+        document.getElementById('sendChatBtn').addEventListener('click', handleSendChat);
+        document.getElementById('closeChatBtn').addEventListener('click', closeChatBox);
+        document.getElementById('openChatBtnMobile').addEventListener('click', openChatBox);
+        chatInputField.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSendChat();
+            } else if (e.key === 'Escape') {
+                closeChatBox();
+            }
+        });
+
+        // ------------------- ۸. برداشتن آیتم‌ها با دکمه E (موز دابل‌جامپ و آرپی‌جی بی‌نهایت مرحله ۳) -------------------
+        function tryPickupNearestItem() {
+            if (!gameRunning) return;
+
+            for (let i = groundDrops.length - 1; i >= 0; i--) {
+                const item = groundDrops[i];
+                const dist = Math.hypot(player.x - item.x, player.y - item.y);
+                if (dist < 95) {
+                    if (item.type === 'banana') {
+                        groundDrops.splice(i, 1);
+                        player.maxJumps = 2;
+                        player.hasDoubleJumpBanana = true;
+                        document.getElementById('hudDoubleJumpBadge').classList.remove('hidden');
+                        player.chatText = 'به به چه موزی! دابل جامپ فعال شد! 🍌';
+                        player.chatTimer = 240;
+                        AudioEngine.playReward();
+                        spawnParticles(item.x, item.y, '#facc15', 28);
+                        appendChatMessage('سیستم', '🍌 شما موز را خوردید! اکنون می‌توانید با زدن دوباره Space در هوا «دابل جامپ» بزنید!', true);
+                        return;
+                    } else if (item.type === 'rpg') {
+                        // فقط ۱ نفر می‌تواند آرپی‌جی مرحله ۳ را بردارد!
+                        if (item.claimedBy) return;
+                        item.claimedBy = playerConfig.id;
+                        groundDrops.splice(i, 1);
+                        player.hasInfiniteRpg = true;
+                        player.weapon = 'rpg';
+                        updateAmmoHud();
+                        AudioEngine.playReward();
+                        spawnParticles(item.x, item.y, '#facc15', 40);
+                        player.chatText = 'آرپی‌جی بی‌نهایت رو اول من برداشتم! 🚀';
+                        player.chatTimer = 260;
+                        appendChatMessage('سیستم', `🚀 ${playerConfig.name} زودتر دکمه E را زد و تنها «آرپی‌جی بی‌نهایت» مرحله ۳ را صاحب شد!`, true);
+                        claimRpgInFirebase(playerConfig.id, playerConfig.name);
+                        return;
+                    }
+                }
+            }
+
+            // اگر نزدیک اهالی بود، با زدن E هم دیالوگشان را بگویند
+            npcs.forEach(npc => {
+                if (Math.hypot(player.x - npc.x, player.y - npc.y) < 95) {
+                    triggerNpcTalk(npc);
+                }
+            });
+        }
+
+        document.getElementById('pickupBtnMobile').addEventListener('click', tryPickupNearestItem);
+
+        function triggerNpcTalk(npc) {
+            npc.bubbleTimer = 280;
+            AudioEngine.playTalk();
+            spawnParticles(npc.x, npc.y - 30, npc.color, 10);
+            if (npc.id === 'npc_mamad') {
+                npc.phrase = 'ممد فشار';
+            } else if (npc.id === 'npc_26') {
+                npc.phrase = '26 به توان 26';
+            } else if (npc.id === 'npc_moein') {
+                npc.phrase = 'من معین 26 هستم';
+            }
+            appendChatMessage(npc.name, `"${npc.phrase}"`);
+        }
+
+        // ------------------- ۹. ورودی صفحه‌کلید و ماوس (A, D, Space, T, E, کلیدهای ۱ تا ۵ و کلیک) -------------------
+        const keys = {};
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMouseDown = false;
+
+        window.addEventListener('keydown', (e) => {
+            if (isChatOpen) return;
+
+            const code = e.code;
+            const key = e.key.toLowerCase();
+
+            // دکمه T برای باز کردن صفحه چت زیر بازی
+            if (code === 'KeyT' || key === 't' || key === 'ف') {
+                e.preventDefault();
+                openChatBox();
+                return;
+            }
+
+            // دکمه E برای برداشتن آرپی‌جی یا موز
+            if (code === 'KeyE' || key === 'e' || key === 'ث') {
+                e.preventDefault();
+                tryPickupNearestItem();
+                return;
+            }
+
+            // پرش و دابل جامپ
+            if (code === 'Space' || code === 'KeyW' || code === 'ArrowUp') {
+                if (!keys['JumpHeld']) {
+                    handleJump();
+                    keys['JumpHeld'] = true;
+                }
+            }
+
+            // دش سریع به سبک هالونایت
+            if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                handleDash();
+            }
+
+            // انتخاب اسلحه ۱ تا ۵
+            if (code === 'Digit1') selectWeapon('pistol');
+            if (code === 'Digit2') selectWeapon('mk12');
+            if (code === 'Digit3') selectWeapon('rifle');
+            if (code === 'Digit4') selectWeapon('shotgun');
+            if (code === 'Digit5' && player.hasInfiniteRpg) selectWeapon('rpg');
+
+            keys[code] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+            if (e.code === 'Space' || e.code === 'KeyW' || e.code === 'ArrowUp') {
+                keys['JumpHeld'] = false;
+                // کنترل ارتفاع پرش به سبک هالونایت
+                if (player.vy < -5) {
+                    player.vy *= 0.55;
+                }
+            }
+        });
+
+        function selectWeapon(w) {
+            if (w === 'rpg' && !player.hasInfiniteRpg) return;
+            player.weapon = w;
+            updateAmmoHud();
+        }
+
+        document.querySelectorAll('.hud-weapon-slot').forEach(btn => {
+            btn.addEventListener('click', () => selectWeapon(btn.dataset.slot));
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!gameRunning || isChatOpen) return;
+            if (e.button !== 0) return;
+
+            const worldClickX = e.clientX + cameraX;
+            const worldClickY = e.clientY;
+
+            // بررسی کلیک روی اهالی (NPCs)
+            for (const npc of npcs) {
+                if (Math.abs(worldClickX - npc.x) < 38 && Math.abs(worldClickY - (npc.y - 25)) < 48) {
+                    triggerNpcTalk(npc);
+                    return;
+                }
+            }
+
+            isMouseDown = true;
+            fireWeapon();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+
+        function handleJump() {
+            if (!gameRunning || isChatOpen) return;
+            if (player.grounded) {
+                player.vy = -14.2;
+                player.grounded = false;
+                player.jumpsUsed = 1;
+                AudioEngine.playJump(false);
+                spawnParticles(player.x, player.y + 24, '#e2e8f0', 10);
+            } else if (player.jumpsUsed < player.maxJumps) {
+                // دابل جامپ طلایی بعد از خوردن موز کد 206
+                player.vy = -13.6;
+                player.jumpsUsed++;
+                AudioEngine.playJump(true);
+                spawnParticles(player.x, player.y + 20, '#facc15', 22);
+            }
+        }
+
+        function handleDash() {
+            if (!gameRunning || isChatOpen) return;
+            if (player.dashCooldown <= 0) {
+                player.dashTimer = 11;
+                player.dashCooldown = 42;
+                player.vx = player.facing * 17;
+                player.vy = 0;
+                spawnParticles(player.x, player.y, '#38bdf8', 18);
+            }
+        }
+
+        // شلیک اسلحه با رفتار واقع‌گرایانه هر تفنگ
+        function fireWeapon() {
+            if (!gameRunning || isChatOpen) return;
+            const now = performance.now();
+            const spec = WEAPON_SPECS[player.weapon];
+            if (!spec) return;
+
+            if (now - player.lastShotTime < spec.cooldown) return;
+
+            // بررسی تیر (هر تفنگ ۱۰۰ تیر، آرپی‌جی بی‌نهایت)
+            if (player.weapon !== 'rpg') {
+                if (player.ammo[player.weapon] <= 0) {
+                    player.chatText = `تیر ${spec.name} تمام شد! (با ۱ تا ۴ سلاح عوض کنید)`;
+                    player.chatTimer = 120;
+                    return;
+                }
+                player.ammo[player.weapon]--;
+                updateAmmoHud();
+            }
+
+            player.lastShotTime = now;
+            AudioEngine.playGunshot(player.weapon);
+            screenShake = player.weapon === 'rpg' ? 10 : player.weapon === 'shotgun' ? 6 : 2.5;
+
+            const worldMouseX = mouseX + cameraX;
+            const worldMouseY = mouseY;
+            const baseAngle = Math.atan2(worldMouseY - (player.y - 6), worldMouseX - player.x);
+            player.aimAngle = baseAngle;
+            player.facing = Math.cos(baseAngle) >= 0 ? 1 : -1;
+
+            for (let p = 0; p < spec.pellets; p++) {
+                const angle = baseAngle + (Math.random() - 0.5) * spec.spread;
+                bullets.push({
+                    x: player.x + Math.cos(baseAngle) * 24,
+                    y: (player.y - 6) + Math.sin(baseAngle) * 24,
+                    vx: Math.cos(angle) * spec.speed,
+                    vy: Math.sin(angle) * spec.speed,
+                    traveled: 0,
+                    maxRange: spec.range,
+                    damage: spec.damage,
+                    color: spec.color,
+                    knockback: spec.knockback,
+                    explosive: !!spec.explosive,
+                    blastRadius: spec.blastRadius || 0,
+                    fromPlayer: true
+                });
+            }
+
+            // ذرات آتش دهانه لوله تفنگ
+            spawnParticles(
+                player.x + Math.cos(baseAngle) * 26,
+                (player.y - 6) + Math.sin(baseAngle) * 26,
+                spec.color,
+                6
+            );
+        }
+
+        function spawnParticles(x, y, color, count = 12) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x,
+                    y,
+                    vx: (Math.random() - 0.5) * 9,
+                    vy: (Math.random() - 0.7) * 8,
+                    size: 2 + Math.random() * 4,
+                    color,
+                    life: 22 + Math.random() * 18
+                });
+            }
+        }
+
+        // ------------------- ۱۰. بخش آنلاین ۴ رقمی (ساخت کد و جوین شدن) -------------------
+        const onlineLobbyModal = document.getElementById('onlineLobbyModal');
+
+        document.getElementById('openOnlineModalBtn').addEventListener('click', () => {
+            onlineLobbyModal.classList.remove('hidden');
+            onlineLobbyModal.classList.add('flex');
+        });
+
+        document.getElementById('closeOnlineModalBtn').addEventListener('click', () => {
+            onlineLobbyModal.classList.add('hidden');
+            onlineLobbyModal.classList.remove('flex');
+        });
+
+        // ساخت کد ۴ رقمی قبل از شروع بازی
+        document.getElementById('createRoomBtn').addEventListener('click', async () => {
+            const code = String(Math.floor(1000 + Math.random() * 9000));
+            activeRoomCode = code;
+            document.getElementById('hostedRoomBox').classList.remove('hidden');
+            document.getElementById('generatedCodeDisplay').textContent = code;
+            document.getElementById('hudRoomCodeBox').classList.remove('hidden');
+            document.getElementById('hudRoomCodeText').textContent = code;
+
+            if (db && currentUser) {
+                try {
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+                    await setDoc(roomRef, {
+                        code,
+                        hostId: playerConfig.id,
+                        hostName: playerConfig.name,
+                        level: currentLevel,
+                        rpgClaimedBy: null,
+                        rpgClaimedName: null,
+                        players: {
+                            [playerConfig.id]: getLocalPlayerSyncPayload()
+                        },
+                        updatedAt: Date.now()
+                    });
+                    subscribeToRoom(code);
+                } catch (e) {
+                    console.warn("Room create fallback:", e);
+                }
+            }
+        });
+
+        // جستجوی کد دعوت ۴ رقمی و جوین شدن به دوست
+        document.getElementById('joinRoomBtn').addEventListener('click', async () => {
+            const code = document.getElementById('joinCodeInput').value.trim();
+            const msgEl = document.getElementById('joinStatusMsg');
+            if (!/^\d{4}$/.test(code)) {
+                msgEl.textContent = 'لطفاً یک کد ۴ رقمی معتبر وارد کنید (مثلاً 4829)';
+                return;
+            }
+
+            activeRoomCode = code;
+            document.getElementById('hudRoomCodeBox').classList.remove('hidden');
+            document.getElementById('hudRoomCodeText').textContent = code;
+            msgEl.textContent = `در حال اتصال به مپ کد ${code}...`;
+
+            if (db && currentUser) {
+                try {
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+                    const snap = await getDoc(roomRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        currentLevel = data.level || 1;
+                        await updateDoc(roomRef, {
+                            [`players.${playerConfig.id}`]: getLocalPlayerSyncPayload()
+                        });
+                        subscribeToRoom(code);
+                        msgEl.textContent = 'اتصال برقرار شد! در حال ورود به مپ دوست شما...';
+                        setTimeout(() => startGameSession(currentLevel), 400);
+                        return;
+                    } else {
+                        // اگر اتاق از قبل نبود، همان کد را می‌سازیم تا هر دو با همان کد ۴ رقمی وارد شوند
+                        await setDoc(roomRef, {
+                            code,
+                            hostId: playerConfig.id,
+                            hostName: playerConfig.name,
+                            level: 1,
+                            rpgClaimedBy: null,
+                            players: {
+                                [playerConfig.id]: getLocalPlayerSyncPayload()
+                            },
+                            updatedAt: Date.now()
+                        });
+                        subscribeToRoom(code);
+                        startGameSession(1);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Join room fallback:", e);
+                }
+            }
+            startGameSession(1);
+        });
+
+        document.getElementById('enterMapOnlineBtn').addEventListener('click', () => {
+            startGameSession(1);
+        });
+
+        function getLocalPlayerSyncPayload() {
+            return {
+                id: playerConfig.id,
+                name: playerConfig.name,
+                x: Math.round(player.x),
+                y: Math.round(player.y),
+                vx: player.vx,
+                facing: player.facing,
+                isMoving: Math.abs(player.vx) > 0.4,
+                skinColor: playerConfig.skinColor,
+                outfitStyle: playerConfig.outfitStyle,
+                outfitColor: playerConfig.outfitColor,
+                hat: playerConfig.hat,
+                glasses: playerConfig.glasses,
+                weapon: player.weapon,
+                aimAngle: player.aimAngle,
+                chatText: player.chatText,
+                chatTimer: player.chatTimer,
+                level: currentLevel,
+                updatedAt: Date.now()
+            };
+        }
+
+        function subscribeToRoom(code) {
+            if (!db || !currentUser) return;
+            if (roomUnsubscribe) roomUnsubscribe();
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+            roomUnsubscribe = onSnapshot(roomRef, (snap) => {
+                if (!snap.exists()) return;
+                const data = snap.data();
+                const playersMap = data.players || {};
+                remotePlayers = {};
+                const names = [];
+                Object.keys(playersMap).forEach(pid => {
+                    names.push(playersMap[pid].name);
+                    if (pid !== playerConfig.id) {
+                        remotePlayers[pid] = playersMap[pid];
+                    }
+                });
+                const listEl = document.getElementById('lobbyPlayersList');
+                if (listEl) {
+                    listEl.textContent = `بازیکنان داخل مپ (${names.length}): ${names.join(' ، ')}`;
+                }
+
+                // همگام‌سازی برداشتن تک آرپی‌جی مرحله ۳ (اگر بازیکن دیگر زودتر برداشته باشد، از زمین حذف شود)
+                if (data.rpgClaimedBy && data.rpgClaimedBy !== playerConfig.id) {
+                    const idx = groundDrops.findIndex(d => d.type === 'rpg');
+                    if (idx !== -1) {
+                        groundDrops.splice(idx, 1);
+                        appendChatMessage('سیستم آنلاین', `⚠️ ${data.rpgClaimedName || 'هم‌تیمی شما'} زودتر دکمه E را زد و تنها آرپی‌جی بی‌نهایت را برداشت!`, true);
+                    }
+                }
+            }, (err) => {
+                console.warn("Room snapshot error:", err);
+            });
+        }
+
+        async function syncStateToFirebase() {
+            if (!db || !currentUser || !activeRoomCode) return;
+            const now = Date.now();
+            if (now - lastSyncTime < 120) return;
+            lastSyncTime = now;
+            try {
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', activeRoomCode);
+                await updateDoc(roomRef, {
+                    [`players.${playerConfig.id}`]: getLocalPlayerSyncPayload(),
+                    level: currentLevel
+                });
+            } catch (e) {}
+        }
+
+        async function claimRpgInFirebase(winnerId, winnerName) {
+            if (!db || !currentUser || !activeRoomCode) return;
+            try {
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', activeRoomCode);
+                await updateDoc(roomRef, {
+                    rpgClaimedBy: winnerId,
+                    rpgClaimedName: winnerName
+                });
+            } catch (e) {}
+        }
+
+        // ------------------- ۱۱. شروع بازی و مدیریت تغییر مراحل -------------------
+        function startGameSession(lvl = 1) {
+            AudioEngine.init();
+            playerConfig.name = document.getElementById('playerNameInput').value.trim() || 'جنگجوی ایرانی';
+            player.weapon = playerConfig.startingWeapon || 'pistol';
+            coopBot.active = document.getElementById('enableCoopPartnerCheckbox').checked;
+
+            document.getElementById('hudPlayerName').textContent = playerConfig.name;
+            document.getElementById('mainMenuModal').classList.add('hidden');
+            onlineLobbyModal.classList.add('hidden');
+            onlineLobbyModal.classList.remove('flex');
+            document.getElementById('victoryModal').classList.add('hidden');
+            document.getElementById('victoryModal').classList.remove('flex');
+
+            document.getElementById('gameHud').classList.remove('hidden');
+            document.getElementById('gameHud').classList.add('flex');
+            document.getElementById('chatWidget').classList.remove('hidden');
+            document.getElementById('chatWidget').classList.add('flex');
+            document.getElementById('mobileTouchControls').classList.remove('hidden');
+            document.getElementById('mobileTouchControls').classList.add('flex');
+
+            gameRunning = true;
+            loadLevel(lvl);
+        }
+
+        document.getElementById('startSoloBtn').addEventListener('click', () => startGameSession(1));
+        document.getElementById('backToMenuBtn').addEventListener('click', () => {
+            gameRunning = false;
+            document.getElementById('mainMenuModal').classList.remove('hidden');
+        });
+        document.getElementById('quickLevelSelect').addEventListener('change', (e) => {
+            loadLevel( parseInt(e.target.value, 10) );
+        });
+        document.getElementById('replayGameBtn').addEventListener('click', () => startGameSession(1));
+        document.getElementById('victoryMenuBtn').addEventListener('click', () => {
+            document.getElementById('victoryModal').classList.add('hidden');
+            document.getElementById('victoryModal').classList.remove('flex');
+            document.getElementById('mainMenuModal').classList.remove('hidden');
+        });
+
+        // دکمه‌های لمسی موبایل
+        const bindTouch = (id, keyName, actionFn) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (keyName) keys[keyName] = true;
+                if (actionFn) actionFn();
+            });
+            el.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (keyName) keys[keyName] = false;
+            });
+        };
+        bindTouch('touchLeft', 'KeyD');
+        bindTouch('touchRight', 'KeyA');
+        bindTouch('touchJump', null, handleJump);
+        bindTouch('touchDash', null, handleDash);
+        bindTouch('touchShoot', null, fireWeapon);
+
+        // ------------------- ۱۲. حلقه فیزیک، هوش مصنوعی باس‌ها و رندر ۶۰ فریم -------------------
+        function updateGame(ts) {
+            if (!gameRunning) return;
+
+            // ۱. حرکت سکوهای متحرک
+            platforms.forEach(p => {
+                if (p.type === 'moving') {
+                    const prevX = p.x;
+                    p.x = p.baseX + Math.sin(ts * p.speed) * p.range;
+                    p.dx = p.x - prevX;
+                } else {
+                    p.dx = 0;
+                }
+            });
+
+            // ۲. کنترل چپ و راست بازیکن با دکمه‌های A و D (نرم به سبک هالونایت)
+            const moveLeft = keys['KeyA'] || keys['ArrowLeft'];
+            const moveRight = keys['KeyD'] || keys['ArrowRight'];
+            const targetSpeed = 6.2;
+
+            if (player.dashTimer > 0) {
+                player.dashTimer--;
+            } else {
+                if (moveLeft && !moveRight) {
+                    player.vx += (-targetSpeed - player.vx) * 0.28;
+                    player.facing = -1;
+                } else if (moveRight && !moveLeft) {
+                    player.vx += (targetSpeed - player.vx) * 0.28;
+                    player.facing = 1;
+                } else {
+                    player.vx *= 0.78;
+                    if (Math.abs(player.vx) < 0.1) player.vx = 0;
+                }
+                player.vy += 0.62; // جاذبه نرم
+                if (player.vy > 15) player.vy = 15;
+            }
+
+            if (player.dashCooldown > 0) player.dashCooldown--;
+            if (player.invulnTimer > 0) player.invulnTimer--;
+            if (player.chatTimer > 0) player.chatTimer--;
+
+            // شلیک خودکار برای تفنگ رگبار وقتی کلیک نگه داشته شده
+            if (isMouseDown && WEAPON_SPECS[player.weapon]?.auto) {
+                fireWeapon();
+            }
+
+            // ۳. برخورد بازیکن با سکوها
+            player.x += player.vx;
+            player.x = Math.max(24, Math.min(levelWidth - 24, player.x));
+
+            player.y += player.vy;
+            player.grounded = false;
+
+            for (const p of platforms) {
+                if (
+                    player.x + 12 > p.x &&
+                    player.x - 12 < p.x + p.w &&
+                    player.y + 26 >= p.y &&
+                    player.y + 26 - player.vy <= p.y + 14 &&
+                    player.vy >= 0
+                ) {
+                    player.y = p.y - 26;
+                    player.vy = 0;
+                    player.grounded = true;
+                    player.jumpsUsed = 0;
+                    if (p.dx) player.x += p.dx;
+                }
+            }
+
+            // افتادن در دره
+            if (player.y > 680) {
+                damagePlayer(22);
+                player.x = Math.max(120, player.x - 180);
+                player.y = 260;
+                player.vy = 0;
+            }
+
+            // برخورد با تیغ‌ها
+            for (const s of spikes) {
+                if (
+                    player.x + 10 > s.x &&
+                    player.x - 10 < s.x + s.w &&
+                    player.y + 25 > s.y &&
+                    player.y - 20 < s.y + s.h
+                ) {
+                    damagePlayer(16);
+                    player.vy = -10;
+                }
+            }
+
+            // ۴. زاویه هدف‌گیری به سمت نشانگر ماوس
+            const worldMouseX = mouseX + cameraX;
+            const worldMouseY = mouseY;
+            player.aimAngle = Math.atan2(worldMouseY - (player.y - 6), worldMouseX - player.x);
+
+            // ۵. هوش مصنوعی یار کمکی (در صورت فعال بودن تیک هم‌تیمی شبیه‌ساز)
+            if (coopBot.active) {
+                const targetX = player.x - 65 * player.facing;
+                const rpgDrop = groundDrops.find(d => d.type === 'rpg');
+                // اگر آرپی‌جی مرحله ۳ روی زمین افتاده باشد، هم‌تیمی هم به سمتش می‌دود تا رقابت واقعی ایجاد شود!
+                if (rpgDrop) {
+                    const dir = Math.sign(rpgDrop.x - coopBot.x);
+                    coopBot.vx = dir * 3.8; // سرعت کمی کمتر از بازیکن تا بازیکن فرصت برداشتن با E را داشته باشد
+                    coopBot.facing = dir || 1;
+                    coopBot.x += coopBot.vx;
+                    if (Math.abs(coopBot.x - rpgDrop.x) < 28) {
+                        groundDrops.splice(groundDrops.indexOf(rpgDrop), 1);
+                        coopBot.weapon = 'rpg';
+                        coopBot.chatText = 'آخ جون! من آرپی‌جی بی‌نهایت رو برداشتم!';
+                        coopBot.chatTimer = 240;
+                        appendChatMessage(coopBot.name, 'من زودتر رسیدم و آرپی‌جی بی‌نهایت مرحله ۳ رو برداشتم! 😜', true);
+                    }
+                } else {
+                    coopBot.vx = (targetX - coopBot.x) * 0.08;
+                    coopBot.x += coopBot.vx;
+                    coopBot.facing = player.facing;
+                }
+                coopBot.y = player.y;
+                if (coopBot.chatTimer > 0) coopBot.chatTimer--;
+            }
+
+            // ۶. به‌روزرسانی اهالی (NPCs)
+            npcs.forEach(npc => {
+                if (npc.bubbleTimer > 0) npc.bubbleTimer--;
+            });
+
+            // ۷. به‌روزرسانی آیتم‌های روی زمین (موز و آرپی‌جی بی‌نهایت)
+            let nearPickable = null;
+            groundDrops.forEach(d => {
+                d.y += d.vy || 0;
+                d.vy = (d.vy || 0) + 0.45;
+                for (const p of platforms) {
+                    if (d.x >= p.x && d.x <= p.x + p.w && d.y >= p.y - 12 && d.y <= p.y + 20 && d.vy >= 0) {
+                        d.y = p.y - 12;
+                        d.vy = 0;
+                    }
+                }
+                if (Math.hypot(player.x - d.x, player.y - d.y) < 95) {
+                    nearPickable = d;
+                }
+            });
+
+            const promptBanner = document.getElementById('centerPromptBanner');
+            const promptText = document.getElementById('centerPromptText');
+            if (nearPickable) {
+                promptBanner.classList.remove('hidden');
+                promptText.textContent = `دکمه [E] را بزنید تا «${nearPickable.name}» را بردارید!`;
+            } else {
+                promptBanner.classList.add('hidden');
+            }
+
+            // ۸. به‌روزرسانی دشمنان معمولی
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const en = enemies[i];
+                en.x += en.vx;
+                if (en.x > en.baseX + en.patrolRange) {
+                    en.vx = -Math.abs(en.speed);
+                    en.facing = -1;
+                } else if (en.x < en.baseX - en.patrolRange) {
+                    en.vx = Math.abs(en.speed);
+                    en.facing = 1;
+                }
+
+                if (en.hitFlash > 0) en.hitFlash--;
+
+                // شلیک دشمنان مسلح
+                if (en.canShoot && Math.abs(player.x - en.x) < 680) {
+                    en.shootCooldown--;
+                    if (en.shootCooldown <= 0) {
+                        en.shootCooldown = 115;
+                        const ang = Math.atan2(player.y - en.y, player.x - en.x);
+                        en.facing = Math.cos(ang) >= 0 ? 1 : -1;
+                        bullets.push({
+                            x: en.x,
+                            y: en.y - 8,
+                            vx: Math.cos(ang) * 9.5,
+                            vy: Math.sin(ang) * 9.5,
+                            traveled: 0,
+                            maxRange: 900,
+                            damage: 12,
+                            color: '#f43f5e',
+                            fromEnemy: true
+                        });
+                    }
+                }
+
+                // برخورد فیزیکی با بازیکن
+                if (Math.abs(player.x - en.x) < 26 && Math.abs(player.y - en.y) < 42) {
+                    damagePlayer(14);
+                }
+            }
+
+            // ۹. هوش مصنوعی باس مرحله ۳ (حرص‌درآر با دش، پرتاب گوی و سرعت بالا) و باس مرحله ۵
+            if (boss && boss.hp > 0) {
+                boss.enraged = boss.hp < boss.maxHp * 0.5;
+                const speedMult = boss.enraged ? 1.35 : 1.0;
+                boss.facing = player.x >= boss.x ? 1 : -1;
+
+                boss.actionTimer--;
+                if (boss.dashTimer > 0) {
+                    boss.dashTimer--;
+                    boss.x += boss.vx;
+                    spawnParticles(boss.x, boss.y, boss.color, 2);
+                } else {
+                    // حرکت سریع به سمت بازیکن
+                    boss.vx = boss.facing * (boss.level === 5 ? 4.3 : 3.9) * speedMult;
+                    boss.x += boss.vx;
+                }
+
+                // جاذبه و برخورد باس با زمین
+                boss.vy += 0.6;
+                boss.y += boss.vy;
+                if (boss.y >= 435) {
+                    boss.y = 435;
+                    boss.vy = 0;
+                }
+
+                // مهارت‌های باس: ۱. دش سریع، ۲. پرتاب گوی انرژی، ۳. پرش کوبشی
+                if (boss.actionTimer <= 0) {
+                    const roll = Math.random();
+                    if (roll < 0.38) {
+                        // مهارت ۱: دش سریع حرص‌درآر
+                        boss.dashTimer = 18;
+                        boss.vx = boss.facing * (boss.level === 5 ? 15 : 13.5);
+                        boss.actionTimer = boss.enraged ? 48 : 68;
+                        screenShake = 6;
+                    } else if (roll < 0.78) {
+                        // مهارت ۲: پرتاب رگباری گوی انرژی
+                        const orbCount = boss.level === 5 ? 5 : 3;
+                        const baseAng = Math.atan2(player.y - boss.y, player.x - boss.x);
+                        for (let k = 0; k < orbCount; k++) {
+                            const spreadAng = baseAng + (k - Math.floor(orbCount / 2)) * 0.2;
+                            bullets.push({
+                                x: boss.x + boss.facing * 25,
+                                y: boss.y - 15,
+                                vx: Math.cos(spreadAng) * (boss.level === 5 ? 11.5 : 10.5),
+                                vy: Math.sin(spreadAng) * (boss.level === 5 ? 11.5 : 10.5),
+                                traveled: 0,
+                                maxRange: 1300,
+                                damage: boss.level === 5 ? 18 : 15,
+                                color: '#e879f9',
+                                isOrb: true,
+                                fromEnemy: true
+                            });
+                        }
+                        boss.actionTimer = boss.enraged ? 45 : 64;
+                    } else {
+                        // مهارت ۳: پرش بلند و شلیک گوی از هوا
+                        boss.vy = -14.5;
+                        boss.actionTimer = 60;
+                    }
+                }
+
+                boss.x = Math.max(220, Math.min(levelWidth - 180, boss.x));
+
+                // برخورد تنه باس با بازیکن
+                if (Math.abs(player.x - boss.x) < 42 && Math.abs(player.y - boss.y) < 58) {
+                    damagePlayer(boss.level === 5 ? 20 : 16);
+                }
+            }
+
+            // ۱۰. به‌روزرسانی تیرها و برخورد با دشمنان/باس
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+                b.traveled += Math.hypot(b.vx, b.vy);
+
+                if (b.traveled >= b.maxRange) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                if (b.fromPlayer) {
+                    let hitSomething = false;
+
+                    // برخورد تیر با دشمنان
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        const en = enemies[j];
+                        if (Math.abs(b.x - en.x) < 24 && Math.abs(b.y - (en.y - 6)) < 32) {
+                            hitSomething = true;
+                            applyBulletImpact(b, en);
+                            break;
+                        }
+                    }
+
+                    // برخورد تیر با باس مرحله ۳ یا ۵
+                    if (!hitSomething && boss && boss.hp > 0) {
+                        if (Math.abs(b.x - boss.x) < 38 && Math.abs(b.y - (boss.y - 10)) < 50) {
+                            hitSomething = true;
+                            applyBulletImpact(b, boss, true);
+                        }
+                    }
+
+                    if (hitSomething) {
+                        bullets.splice(i, 1);
+                    }
+                } else if (b.fromEnemy) {
+                    if (Math.abs(b.x - player.x) < 18 && Math.abs(b.y - player.y) < 28) {
+                        damagePlayer(b.damage);
+                        bullets.splice(i, 1);
+                    }
+                }
+            }
+
+            // ۱۱. ذرات
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.life--;
+                if (pt.life <= 0) particles.splice(i, 1);
+            }
+
+            // ۱۲. بررسی باز شدن دروازه خروج مرحله
+            const allEnemiesDead = enemies.length === 0 && (!boss || boss.hp <= 0);
+            exitPortal.open = allEnemiesDead;
+
+            if (exitPortal.open && Math.hypot(player.x - exitPortal.x, player.y - exitPortal.y) < 55) {
+                if (currentLevel < 5) {
+                    AudioEngine.playReward();
+                    loadLevel(currentLevel + 1);
+                } else {
+                    // پیروزی در مرحله ۵
+                    gameRunning = false;
+                    AudioEngine.playReward();
+                    document.getElementById('victoryModal').classList.remove('hidden');
+                    document.getElementById('victoryModal').classList.add('flex');
+                }
+            }
+
+            // ۱۳. حرکت نرم دوربین به دنبال کاراکتر
+            const targetCamX = Math.max(0, Math.min(levelWidth - canvas.width, player.x - canvas.width * 0.38));
+            cameraX += (targetCamX - cameraX) * 0.12;
+            if (screenShake > 0) screenShake *= 0.85;
+
+            syncStateToFirebase();
+        }
+
+        function applyBulletImpact(bullet, target, isBossTarget = false) {
+            if (bullet.explosive) {
+                // انفجار بزرگ آرپی‌جی بی‌نهایت
+                screenShake = 14;
+                spawnParticles(bullet.x, bullet.y, '#facc15', 38);
+                enemies.forEach(en => {
+                    if (Math.hypot(en.x - bullet.x, en.y - bullet.y) <= bullet.blastRadius) {
+                        en.hp -= bullet.damage;
+                        en.hitFlash = 8;
+                    }
+                });
+                if (boss && boss.hp > 0 && Math.hypot(boss.x - bullet.x, boss.y - bullet.y) <= bullet.blastRadius + 30) {
+                    boss.hp -= bullet.damage;
+                }
+            } else {
+                target.hp -= bullet.damage;
+                target.hitFlash = 6;
+                if (!isBossTarget) {
+                    target.x += Math.sign(bullet.vx) * bullet.knockback;
+                }
+                spawnParticles(bullet.x, bullet.y, bullet.color, 8);
+            }
+
+            // حذف دشمنان کشته شده
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                if (enemies[j].hp <= 0) {
+                    spawnParticles(enemies[j].x, enemies[j].y, enemies[j].color, 22);
+                    enemies.splice(j, 1);
+                }
+            }
+
+            // بررسی مرگ باس مرحله ۳ (دراپ دقیقاً ۱ عدد آرپی‌جی بی‌نهایت روی زمین)
+            if (boss && boss.hp <= 0) {
+                spawnParticles(boss.x, boss.y, '#facc15', 55);
+                screenShake = 18;
+                AudioEngine.playReward();
+
+                if (boss.level === 3) {
+                    // انداختن تک آرپی‌جی بی‌نهایت روی زمین که فقط ۱ بازیکن با دکمه E می‌تواند بردارد!
+                    groundDrops.push({
+                        id: 'rpg_drop_lvl3',
+                        type: 'rpg',
+                        x: boss.x,
+                        y: boss.y - 15,
+                        vy: -7,
+                        claimedBy: null,
+                        name: '🚀 آرپی‌جی بی‌نهایت (فقط ۱ عدد! سریع E را بزنید)'
+                    });
+                    appendChatMessage('سیستم', '🔥 غول مرحله ۳ کشته شد و فقط ۱ عدد «آرپی‌جی بی‌نهایت» از او بیرون افتاد! هر کس زودتر دکمه E را بزند صاحبش می‌شود!', true);
+                } else if (boss.level === 5) {
+                    appendChatMessage('سیستم', '🏆 امپراتور تاریکی نابود شد! وارد دروازه طلایی انتهای مپ شوید!', true);
+                }
+                boss = null;
+            }
+
+            updateBossHud();
+        }
+
+        function damagePlayer(amount) {
+            if (player.invulnTimer > 0 || player.dashTimer > 0) return;
+            player.hp = Math.max(0, player.hp - amount);
+            player.invulnTimer = 38;
+            screenShake = 8;
+            spawnParticles(player.x, player.y, '#ef4444', 14);
+
+            document.getElementById('hudHpBar').style.width = `${(player.hp / player.maxHp) * 100}%`;
+            document.getElementById('hudHpText').textContent = `${Math.ceil(player.hp)} / ${player.maxHp}`;
+
+            if (player.hp <= 0) {
+                player.hp = player.maxHp;
+                player.x = 140;
+                player.y = 360;
+                player.vx = 0;
+                player.vy = 0;
+                document.getElementById('hudHpBar').style.width = '100%';
+                document.getElementById('hudHpText').textContent = '100 / 100';
+                appendChatMessage('سیستم', 'شما به ابتدای مرحله بازگشتید! دوباره تلاش کنید.', true);
+            }
+        }
+
+        // ------------------- ۱۳. رندر گرافیکی محیط، اهالی، دشمنان با نوار جان و افکت‌ها -------------------
+        function renderGame(ts) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // پس‌زمینه اتمسفریک بر اساس مرحله
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            if (currentLevel === 3 || currentLevel === 5) {
+                bgGrad.addColorStop(0, '#0f071e');
+                bgGrad.addColorStop(1, '#2a0a2e');
+            } else {
+                bgGrad.addColorStop(0, '#090d16');
+                bgGrad.addColorStop(1, '#162032');
+            }
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            const shakeX = (Math.random() - 0.5) * screenShake;
+            const shakeY = (Math.random() - 0.5) * screenShake;
+            ctx.translate(-cameraX + shakeX, shakeY);
+
+            // کوه‌ها و ستون‌های پس‌زمینه (پارالاکس)
+            ctx.fillStyle = 'rgba(30, 41, 59, 0.35)';
+            for (let i = 0; i < 14; i++) {
+                const mx = i * 380 + (cameraX * 0.25);
+                ctx.beginPath();
+                ctx.moveTo(mx, 520);
+                ctx.lineTo(mx + 190, 210 + (i % 3) * 45);
+                ctx.lineTo(mx + 380, 520);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // ۱. رسم سکوها و زمین
+            platforms.forEach(p => {
+                ctx.fillStyle = p.type === 'moving' ? '#0284c7' : '#1e293b';
+                ctx.beginPath();
+                ctx.roundRect(p.x, p.y, p.w, p.h, 8);
+                ctx.fill();
+
+                // لبه درخشان بالای سکوها
+                ctx.fillStyle = p.type === 'moving' ? '#38bdf8' : '#10b981';
+                ctx.fillRect(p.x + 2, p.y, p.w - 4, 5);
+            });
+
+            // ۲. رسم تیغ‌ها
+            spikes.forEach(s => {
+                ctx.fillStyle = '#f43f5e';
+                const count = Math.floor(s.w / 14);
+                for (let k = 0; k < count; k++) {
+                    ctx.beginPath();
+                    ctx.moveTo(s.x + k * 14, s.y + s.h);
+                    ctx.lineTo(s.x + k * 14 + 7, s.y);
+                    ctx.lineTo(s.x + k * 14 + 14, s.y + s.h);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            });
+
+            // ۳. رسم اهالی (NPCs) با دیالوگ‌های «ممد فشار»، «26 به توان 26» و «من معین 26 هستم»
+            npcs.forEach(npc => {
+                drawCharacter(ctx, {
+                    x: npc.x,
+                    y: npc.y,
+                    facing: player.x >= npc.x ? 1 : -1,
+                    isMoving: false,
+                    name: npc.name + ' (کلیک کنید)',
+                    skinColor: '#fde68a',
+                    outfitStyle: 'hoodie',
+                    outfitColor: npc.color,
+                    hat: npc.hat,
+                    glasses: 'none',
+                    weapon: 'pistol',
+                    aimAngle: 0,
+                    chatText: npc.bubbleTimer > 0 ? npc.phrase : '',
+                    chatTimer: npc.bubbleTimer
+                }, ts);
+            });
+
+            // ۴. رسم آیتم‌های دراپ شده روی زمین (موز کد 206 و آرپی‌جی بی‌نهایت مرحله ۳)
+            groundDrops.forEach(d => {
+                ctx.save();
+                ctx.translate(d.x, d.y + Math.sin(ts * 0.008) * 5);
+                ctx.shadowColor = '#facc15';
+                ctx.shadowBlur = 18;
+
+                if (d.type === 'banana') {
+                    // آیکون موز طلایی
+                    ctx.fillStyle = '#facc15';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 16, 0.3, Math.PI - 0.3);
+                    ctx.lineWidth = 7;
+                    ctx.strokeStyle = '#facc15';
+                    ctx.stroke();
+                } else if (d.type === 'rpg') {
+                    // آرپی‌جی بی‌نهایت درخشان روی زمین
+                    ctx.fillStyle = '#eab308';
+                    ctx.fillRect(-20, -5, 40, 10);
+                    ctx.fillStyle = '#dc2626';
+                    ctx.beginPath();
+                    ctx.moveTo(20, -10);
+                    ctx.lineTo(34, 0);
+                    ctx.lineTo(20, 10);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                ctx.font = 'bold 12px Vazirmatn';
+                ctx.fillStyle = '#fef08a';
+                ctx.textAlign = 'center';
+                ctx.fillText(d.name + ' [دکمه E]', 0, -24);
+                ctx.restore();
+            });
+
+            // ۵. رسم دشمنان با نوار جان بالای سرشان
+            enemies.forEach(en => {
+                ctx.save();
+                ctx.translate(en.x, en.y);
+
+                // بدنه دشمن
+                ctx.fillStyle = en.hitFlash > 0 ? '#ffffff' : en.color;
+                ctx.beginPath();
+                ctx.roundRect(-15, -26, 30, 50, 8);
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#0f172a';
+                ctx.stroke();
+
+                // چشم‌های قرمز دشمن
+                ctx.fillStyle = '#090b10';
+                ctx.fillRect(en.facing * 4 - 6, -18, 12, 6);
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(en.facing * 5 - 3, -17, 6, 4);
+
+                // نوار جان بالای سر دشمن + مقدار عدد جان
+                const barW = 58;
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+                ctx.fillRect(-barW / 2, -48, barW, 10);
+                const hpRatio = Math.max(0, en.hp / en.maxHp);
+                ctx.fillStyle = hpRatio > 0.4 ? '#22c55e' : '#ef4444';
+                ctx.fillRect(-barW / 2 + 1, -47, (barW - 2) * hpRatio, 8);
+
+                ctx.font = 'bold 10px Vazirmatn';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${Math.ceil(en.hp)}/${en.maxHp}`, 0, -52);
+
+                ctx.restore();
+            });
+
+            // ۶. رسم باس مرحله ۳ یا ۵
+            if (boss && boss.hp > 0) {
+                ctx.save();
+                ctx.translate(boss.x, boss.y);
+                ctx.shadowColor = boss.color;
+                ctx.shadowBlur = 22;
+
+                ctx.fillStyle = boss.hitFlash > 0 ? '#ffffff' : boss.color;
+                if (boss.hitFlash > 0) boss.hitFlash--;
+                ctx.beginPath();
+                ctx.roundRect(-boss.width / 2, -boss.height / 2, boss.width, boss.height, 14);
+                ctx.fill();
+
+                // شاخ‌های بزرگ باس
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath();
+                ctx.moveTo(-22, -boss.height / 2);
+                ctx.lineTo(-36, -boss.height / 2 - 28);
+                ctx.lineTo(-8, -boss.height / 2);
+                ctx.moveTo(22, -boss.height / 2);
+                ctx.lineTo(36, -boss.height / 2 - 28);
+                ctx.lineTo(8, -boss.height / 2);
+                ctx.fill();
+
+                // نوار جان بالای سر باس
+                const bw = 96;
+                ctx.fillStyle = '#090b10';
+                ctx.fillRect(-bw / 2, -boss.height / 2 - 42, bw, 12);
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(-bw / 2 + 2, -boss.height / 2 - 40, (bw - 4) * (boss.hp / boss.maxHp), 8);
+
+                ctx.font = 'bold 12px Vazirmatn';
+                ctx.fillStyle = '#fda4af';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${Math.ceil(boss.hp)} / ${boss.maxHp}`, 0, -boss.height / 2 - 47);
+
+                ctx.restore();
+            }
+
+            // ۷. رسم دروازه خروج مرحله
+            ctx.save();
+            ctx.translate(exitPortal.x, exitPortal.y);
+            ctx.strokeStyle = exitPortal.open ? '#10b981' : '#64748b';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(0, 0, 38, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = exitPortal.open ? 'rgba(16, 185, 129, 0.28)' : 'rgba(100, 116, 139, 0.15)';
+            ctx.fill();
+            ctx.font = 'bold 12px Vazirmatn';
+            ctx.fillStyle = exitPortal.open ? '#6ee7b7' : '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.fillText(exitPortal.open ? '✨ دروازه مرحله بعد (وارد شوید)' : '🔒 دروازه قفل (دشمنان را بکشید)', 0, -48);
+            ctx.restore();
+
+            // ۸. رسم هم‌تیمی شبیه‌ساز و بازیکنان آنلاین
+            if (coopBot.active) {
+                drawCharacter(ctx, coopBot, ts);
+            }
+            Object.values(remotePlayers).forEach(rp => {
+                drawCharacter(ctx, rp, ts);
+            });
+
+            // ۹. رسم کاراکتر اصلی بازیکن
+            drawCharacter(ctx, {
+                x: player.x,
+                y: player.y,
+                vx: player.vx,
+                facing: player.facing,
+                isMoving: Math.abs(player.vx) > 0.35,
+                dashTimer: player.dashTimer,
+                name: playerConfig.name,
+                skinColor: playerConfig.skinColor,
+                outfitStyle: playerConfig.outfitStyle,
+                outfitColor: playerConfig.outfitColor,
+                hat: playerConfig.hat,
+                glasses: playerConfig.glasses,
+                weapon: player.weapon,
+                aimAngle: player.aimAngle,
+                chatText: player.chatText,
+                chatTimer: player.chatTimer,
+                isLocal: true
+            }, ts);
+
+            // ۱۰. رسم گلوله‌ها و گوی‌های انرژی
+            bullets.forEach(b => {
+                ctx.save();
+                ctx.fillStyle = b.color;
+                ctx.shadowColor = b.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                if (b.isOrb || b.explosive) {
+                    ctx.arc(b.x, b.y, b.explosive ? 9 : 8, 0, Math.PI * 2);
+                } else {
+                    ctx.arc(b.x, b.y, 4.2, 0, Math.PI * 2);
+                }
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // ۱۱. رسم ذرات
+            particles.forEach(pt => {
+                ctx.fillStyle = pt.color;
+                ctx.globalAlpha = Math.max(0, pt.life / 35);
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+
+            ctx.restore();
+        }
+
+        function mainLoop(ts) {
+            updateGame(ts);
+            if (gameRunning) {
+                renderGame(ts);
+            }
+            requestAnimationFrame(mainLoop);
+        }
+        requestAnimationFrame(mainLoop);
+    </script>
+</body>
+</html>
